@@ -43,3 +43,10 @@ Prototype solo uniquement: interactions arcade simplifiées, bots rudimentaires,
 - Correctif de syntaxe dans la conversion GeoJSON des bâtiments.
 
 **Limite actuelle :** il s'agit d'un rendu 2D canvas avec extrusion graphique, pas de véritables modèles 3D ni d'une vue isométrique libre. Les données bâtiments restent dépendantes d'Overpass/OSM. La version n'a pas été testée dans un navigateur dans cette session.
+
+
+## Vue isométrique — nouvelle étape
+
+La vue de jeu est désormais rendue sur canvas en perspective isométrique. Les tuiles cartographiques planes sont masquées pendant le jeu. Le monde récupère des géométries OSM réelles de routes et bâtiments via Overpass et les dessine dans la scène isométrique; bâtiments extrudés avec faces et toit, avatar avec animation de jambes, bots et loot rendus dans la même couche. Les déplacements sont bloqués par les empreintes de bâtiments. La recherche de ville et le zoom Leaflet servent de base au chargement de la zone.
+
+Limites : rendu pseudo-3D (canvas 2D), pas de modèles 3D/spritesheet, les routes et bâtiments nécessitent une réponse Overpass; caméra isométrique fixe, pas de rotation.
