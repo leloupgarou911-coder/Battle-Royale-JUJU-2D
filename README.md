@@ -13,6 +13,12 @@ Serveur local: `python -m http.server 8000`, puis ouvrir `http://localhost:8000`
 - Sur téléphone : boutons directionnels.
 - VILLE : rechercher et démarrer dans une ville réelle.
 
+### Mise à jour gameplay
+- Personnage stylisé animé (CSS), bots stylisés.
+- Chargement des empreintes de bâtiments OpenStreetMap via Overpass lorsque le zoom est proche.
+- Collision simplifiée: déplacement bloqué si le point joueur entre dans une empreinte.
+- Impulsion arcade visuelle (Q / ACTION) et interaction avec bots proches.
+
 ### Prototype actuel
 - Carte OSM, zoom et déplacement.
 - Joueur et caméra qui suivent.
