@@ -57,17 +57,20 @@ function drawInterior(){
  ctx.fillStyle='#8b7761';ctx.fillRect(x+w*.48,y+16,12,h*.31);ctx.fillRect(x+w*.48,y+h*.43,12,h*.45);ctx.fillRect(x+w*.22,y+h*.52,w*.26,10);
  ctx.fillStyle='#bfe9f6';ctx.fillRect(x+38,y+5,90,6);ctx.fillRect(x+w-130,y+5,90,6);
  const meta=buildingMeta[interior.index]||{};const variant=interior.variant??(interior.index%5);const roomType=meta.type||(['maison','immeuble','commerce','hangar','bureau'][variant%5]);ctx.fillStyle='#f2e4cc';ctx.font='bold 16px system-ui';ctx.fillText('INTÉRIEUR • '+roomType.toUpperCase(),x+24,y+35);
- // furniture
- ctx.fillStyle='#76533a';ctx.fillRect(x+40,y+45,w*.24,h*.18);ctx.fillStyle='#a98a65';ctx.fillRect(x+46,y+51,w*.24-12,h*.18-12);
- ctx.fillStyle='#5c6e70';ctx.fillRect(x+w*.65,y+42,w*.23,44);ctx.fillStyle='#879a9a';ctx.fillRect(x+w*.65+6,y+48,w*.23-12,32);
- ctx.fillStyle='#6a4a31';ctx.fillRect(x+40,y+h*.65,w*.2,18);ctx.fillRect(x+40,y+h*.65+18,8,20);ctx.fillRect(x+w*.75,y+h*.68,22,22);
- if(variant===1||variant===3){ctx.fillStyle='#6d5843';ctx.fillRect(x+w*.28,y+h*.42,60,26);ctx.fillStyle='#9d866b';ctx.fillRect(x+w*.28+5,y+h*.42+5,50,16)}
- if(variant===2){ctx.fillStyle='#3b5b68';ctx.fillRect(x+w*.72,y+h*.35,44,64);ctx.fillStyle='#d4e9ed';ctx.fillRect(x+w*.72+7,y+h*.35+8,30,48)}
+ // Furniture adapts to OSM building type and footprint area.
+ const compact=meta.area<95,wide=meta.area>260;
+ ctx.fillStyle=roomType==='commerce'?'#5c6c45':'#76533a';ctx.fillRect(x+40,y+45,w*(compact?.18:.24),h*(wide?.24:.18));
+ ctx.fillStyle='#a98a65';ctx.fillRect(x+46,y+51,w*(compact?.18:.24)-12,h*(wide?.24:.18)-12);
+ if(roomType==='maison'||roomType==='immeuble'){ctx.fillStyle='#5c6e70';ctx.fillRect(x+w*.65,y+42,w*.23,44);ctx.fillStyle='#879a9a';ctx.fillRect(x+w*.65+6,y+48,w*.23-12,32)}
+ ctx.fillStyle='#6a4a31';ctx.fillRect(x+40,y+h*.65,w*(wide?.28:.2),18);ctx.fillRect(x+40,y+h*.65+18,8,20);ctx.fillRect(x+w*.75,y+h*.68,22,22);
+ if(variant%2===1){ctx.fillStyle='#6d5843';ctx.fillRect(x+w*.28,y+h*.42,60,26);ctx.fillStyle='#9d866b';ctx.fillRect(x+w*.28+5,y+h*.42+5,50,16)}
+ if(roomType==='hangar'||wide){ctx.fillStyle='#3b5b68';ctx.fillRect(x+w*.72,y+h*.35,44,64);ctx.fillStyle='#d4e9ed';ctx.fillRect(x+w*.72+7,y+h*.35+8,30,48)}
+ bots.filter(b=>b.insideBuilding===interior.index).forEach(b=>drawAvatar({x:innerWidth/2+b.roomX*w*.28,y:innerHeight/2+8+b.roomY*h*.28},'#f35d70',walkCycle*.5,1,false));
  // interior collectible generated once per building, shown as pickup
  if(!interior.itemCollected){const ix=x+w*.34,iy=y+h*.72;ctx.fillStyle='#ffcf56';ctx.shadowColor='#ffcf56';ctx.shadowBlur=14;ctx.beginPath();ctx.arc(ix,iy,9,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#4a3420';ctx.fillRect(ix-3,iy-3,6,6);ctx.fillStyle='#fff4cc';ctx.font='bold 11px system-ui';ctx.fillText('OBJET  •  E',ix-28,iy-17)}
  // exit door
  ctx.fillStyle='#2d8c77';ctx.fillRect(x+w*.48-4,y+h-16,30,16);ctx.fillStyle='#dffcf5';ctx.font='bold 12px system-ui';ctx.fillText('F  SORTIR',x+w*.48-20,y+h+20);
- ctx.fillStyle='#f2e4cc';ctx.font='bold 16px system-ui';ctx.fillText('INTÉRIEUR • '+(variant===0?'APPARTEMENT':variant===1?'MAISON':'LOCAL'),x+24,y+35);
+ 
  drawAvatar({x:innerWidth/2+interior.roomX*w*.28,y:innerHeight/2+8+interior.roomY*h*.28},'#38a9ef',walkCycle,heading,true);
  ctx.fillStyle='#d7e9f4';ctx.font='12px system-ui';ctx.fillText('WASD : se déplacer  •  E : récupérer  •  F : sortir',20,innerHeight-26);
 }
