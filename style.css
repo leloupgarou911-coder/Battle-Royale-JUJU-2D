@@ -21,3 +21,10 @@
 .game-world-canvas{position:absolute;inset:0;z-index:520;pointer-events:none}
 .player-marker,.bot-marker,.loot-marker{opacity:0!important}
 .leaflet-marker-icon:has(.player-marker),.leaflet-marker-icon:has(.bot-marker),.leaflet-marker-icon:has(.loot-marker){opacity:0!important}
+
+/* Isometric gameplay view: hide flat web-map tiles, keep map only for geography queries/camera zoom */
+#map{background:#17252a!important;z-index:1}
+#map .leaflet-tile-pane,#map .leaflet-overlay-pane,#map .leaflet-marker-pane,#map .leaflet-shadow-pane{display:none!important}
+#map .leaflet-control-container{opacity:.45;pointer-events:none}
+#isoWorld{position:fixed;inset:0;z-index:2;pointer-events:none}
+.topbar,.left-panel,.right-panel,.bottom-hud,.mobile-pad,.toast,.city-modal,.game-over{z-index:700}
