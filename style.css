@@ -17,3 +17,7 @@
 @keyframes pulse-out{from{transform:scale(.2);opacity:1}to{transform:scale(1.7);opacity:0}}
 .player-hit{filter:drop-shadow(0 0 12px #ff4f6d)!important}
 .leaflet-tooltip{background:#13293b;color:#e7f7ff;border:1px solid #45657d}
+
+.game-world-canvas{position:absolute;inset:0;z-index:520;pointer-events:none}
+.player-marker,.bot-marker,.loot-marker{opacity:0!important}
+.leaflet-marker-icon:has(.player-marker),.leaflet-marker-icon:has(.bot-marker),.leaflet-marker-icon:has(.loot-marker){opacity:0!important}
