@@ -32,3 +32,14 @@ Serveur local: `python -m http.server 8000`, puis ouvrir `http://localhost:8000`
 
 ### Limites connues
 Prototype solo uniquement: interactions arcade simplifiées, bots rudimentaires, pas de vrai multijoueur, pas encore de collisions bâtiment, pas d'animations sprites ni de système de matchmaking. Internet requis pour les cartes et la recherche de villes.
+
+
+## Rendu de jeu — nouvelle passe
+
+- Couche canvas dédiée aux personnages et objets, au lieu des icônes Leaflet visibles.
+- Personnage dessiné avec ombre, corps, tête et jambes animées pendant le déplacement.
+- Bâtiments OSM extrudés en pseudo-3D (façades + toit) au-dessus de leurs empreintes.
+- Le rendu suit la caméra centrée sur le joueur et se redessine lors du déplacement/zoom.
+- Correctif de syntaxe dans la conversion GeoJSON des bâtiments.
+
+**Limite actuelle :** il s'agit d'un rendu 2D canvas avec extrusion graphique, pas de véritables modèles 3D ni d'une vue isométrique libre. Les données bâtiments restent dépendantes d'Overpass/OSM. La version n'a pas été testée dans un navigateur dans cette session.
