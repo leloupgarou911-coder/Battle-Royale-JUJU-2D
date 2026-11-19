@@ -68,7 +68,7 @@ function drawInterior(){
  // door/exit marker and top-down player sprite
  ctx.fillStyle='#2d8c77';ctx.fillRect(x+w*.48-4,y+h-16,30,16);ctx.fillStyle='#dffcf5';ctx.font='bold 12px system-ui';ctx.fillText('F  SORTIR',x+w*.48-20,y+h+20);
  ctx.fillStyle='#f2e4cc';ctx.font='bold 16px system-ui';ctx.fillText('INTÉRIEUR • '+(variant===0?'APPARTEMENT':variant===1?'MAISON':'LOCAL'),x+24,y+35);
- drawAvatar({x:innerWidth/2,y:innerHeight/2+8},'#38a9ef',walkCycle,heading,true);
+ drawAvatar({x:innerWidth/2+interior.roomX*w*.28,y:innerHeight/2+8+interior.roomY*h*.28},'#38a9ef',walkCycle,heading,true);
  ctx.fillStyle='#d7e9f4';ctx.font='12px system-ui';ctx.fillText('WASD : se déplacer  •  F : sortir',20,innerHeight-26);
 }
 function render(){if(!ctx)return;if(interior){drawInterior();return}renderGround();
@@ -78,7 +78,7 @@ function render(){if(!ctx)return;if(interior){drawInterior();return}renderGround
  const px=innerWidth/2,py=innerHeight/2;ctx.strokeStyle='#50e4bf';ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,22,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#e7fbff';ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
 }
 function nearestBuilding(){let best=-1,dist=Infinity;buildingPolys.forEach((poly,i)=>{const c=poly.reduce((a,v)=>({lat:a.lat+v[0]/poly.length,lng:a.lng+v[1]/poly.length}),{lat:0,lng:0});const d=distance(player,L.latLng(c.lat,c.lng));if(d<dist){dist=d;best=i}});return{index:best,distance:dist}}
-function toggleInterior(){if(interior){interior=null;player=offset(player,35,0);toast('Sortie du bâtiment');render();return}const n=nearestBuilding();if(n.index>=0&&n.distance<65){interior={index:n.index,roomX:0,roomY:0};toast('Entrée — F pour ressortir');render()}else toast('Approche d’un bâtiment pour entrer')}
+function toggleInterior(){if(interior){player=interior.returnPos;interior=null;toast('Sortie du bâtiment');render();return}const n=nearestBuilding();if(n.index>=0&&n.distance<65){interior={index:n.index,roomX:0,roomY:0,returnPos:player};toast('Entrée — F pour ressortir');render()}else toast('Approche d’un bâtiment pour entrer')}
 function makeZone(){if(zoneCircle)map.removeLayer(zoneCircle);zoneCircle=L.circle(zoneCenter,{radius:zoneRadius,color:'#35e5b4',weight:2,fillColor:'#35e5b4',fillOpacity:.04,dashArray:'8 8'}).addTo(map)}
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 async function loadWorld(){if(map.getZoom()<15){toast('Zoom pour charger les routes et bâtiments');return}const bounds=map.getBounds(),bbox=[bounds.getSouth(),bounds.getWest(),bounds.getNorth(),bounds.getEast()].join(','),key=bbox;if(key===lastQuery)return;lastQuery=key;
