@@ -90,8 +90,10 @@ function drawInterior(){
  for(const wall of layout.walls){const [x1,y1,x2,y2]=wall,dx=x2-x1,dy=y2-y1;for(const [lo,hi] of [[0,.39],[.61,1]]){ctx.beginPath();ctx.moveTo(ox+mw*fit*(x1+dx*lo),oy+mh*fit*(y1+dy*lo));ctx.lineTo(ox+mw*fit*(x1+dx*hi),oy+mh*fit*(y1+dy*hi));ctx.stroke()}}
  // Furniture is generated per room plan, with collision rectangles shared by player and bots.
  for(const item of layout.furniture){const [fx,fy,fw,fh,color]=item;ctx.fillStyle=color;ctx.fillRect(ox+mw*fit*fx,oy+mh*fit*fy,mw*fit*fw,mh*fit*fh);ctx.strokeStyle='rgba(255,239,211,.35)';ctx.lineWidth=1;ctx.strokeRect(ox+mw*fit*fx,oy+mh*fit*fy,mw*fit*fw,mh*fit*fh)}
- // A visible stairwell is the shared vertical connection between accessible floors.
- furniture(.78,.76,.13,.16,'#625746');ctx.strokeStyle='#e4d4b8';ctx.lineWidth=2;for(let k=0;k<5;k++){const sx=ox+mw*fit*(.79+k*.022),sy=oy+mh*fit*(.78+k*.027);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+mw*fit*.1,sy);ctx.stroke()}
+ // Shared stairwell landing: repeated treads, side rails and an up/down direction marker.
+ ctx.fillStyle='#625746';ctx.fillRect(ox+mw*fit*.76,oy+mh*fit*.72,mw*fit*.19,mh*fit*.22);
+ ctx.strokeStyle='#e4d4b8';ctx.lineWidth=2;for(let k=0;k<6;k++){const sx=ox+mw*fit*(.775+k*.026),sy=oy+mh*fit*(.735+k*.027);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+mw*fit*.13,sy);ctx.stroke()}
+ ctx.strokeStyle='#f7d77b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+mw*fit*.86,oy+mh*fit*.91);ctx.lineTo(ox+mw*fit*.86,oy+mh*fit*.79);ctx.lineTo(ox+mw*fit*.83,oy+mh*fit*.83);ctx.moveTo(ox+mw*fit*.86,oy+mh*fit*.79);ctx.lineTo(ox+mw*fit*.89,oy+mh*fit*.83);ctx.stroke();
  ctx.restore();footprint();ctx.strokeStyle='#f0e5cc';ctx.lineWidth=4;ctx.stroke();
  // Entry and window markers are aligned to real footprint edges.
  const first=pts[0],last=pts[1]||pts[0];ctx.strokeStyle='#42c5a0';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo((first.x+last.x)/2-9,(first.y+last.y)/2);ctx.lineTo((first.x+last.x)/2+9,(first.y+last.y)/2);ctx.stroke();
