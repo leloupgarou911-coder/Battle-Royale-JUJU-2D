@@ -35,6 +35,17 @@ await page.route('https://{s}.tile.openstreetmap.org/**', route => route.abort()
 
 try {
   await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+  // Language toggle must translate real interface content, not merely relabel itself.
+  await page.locator('#languageBtn').click();
+  assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+  assert.match(await page.locator('.home-copy h1').textContent(), /YOUR WORLD/);
+  assert.equal(await page.locator('#playBtn').innerText().then(v=>v.includes('PLAY')), true);
+  await page.locator('#languageBtn').click();
+  assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+  await page.locator('#profileBtn').click();
+  await page.locator('#profileModal.open').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.profile-stat').count(), 4);
+  await page.locator('#closeProfile').click();
   await page.locator('#playBtn').click();
   await page.locator('#cityModal.open').waitFor({ state: 'visible' });
 
@@ -53,19 +64,28 @@ try {
   assert.notEqual(tileDisplay, 'none');
 
   await page.locator('#saveGameBtn').click();
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-save-v1')));
-  assert.ok(Array.isArray(saved.loot) && saved.loot.length > 0);
-  assert.ok(saved.loot.every(item => typeof item.type === 'string' && item.type.length > 0));
+  const library = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2')));
+  assert.equal(library.length, 6, 'Expected six independent save slots');
+  assert.ok(library[0].data && Array.isArray(library[0].data.loot) && library[0].data.loot.length > 0);
+  assert.ok(library[0].data.loot.every(item => typeof item.type === 'string' && item.type.length > 0));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('#savesBtn').click();
+  await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.save-slot').count(), 6);
+  await page.locator('.save-slot').first().getByRole('button', { name: 'Charger' }).click();
+  await page.locator('body.game-active').waitFor({ state: 'attached' });
 
-  // Corrupt/legacy entries must be normalized instead of crashing the renderer.
+  // Corrupt entries must be normalized instead of crashing the renderer.
   await page.evaluate(() => {
-    const snapshot = JSON.parse(localStorage.getItem('juju-world-save-v1'));
-    snapshot.equipment = ['unknown-item'];
-    snapshot.loot[0].type = 'unknown-item';
-    localStorage.setItem('juju-world-save-v1', JSON.stringify(snapshot));
+    const slots = JSON.parse(localStorage.getItem('juju-world-saves-v2'));
+    slots[0].data.equipment = ['unknown-item'];
+    slots[0].data.loot[0].type = 'unknown-item';
+    localStorage.setItem('juju-world-saves-v2', JSON.stringify(slots));
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
+  await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
+  await page.locator('.save-slot').first().getByRole('button', { name: 'Charger' }).click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
   assert.equal(await page.locator('.weapon b').textContent(), 'Aucun équipement');
   await page.waitForFunction(() => document.querySelector('#terrainReadout')?.textContent.includes('ALT. 25 m'), null, { timeout: 15000 });
