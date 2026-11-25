@@ -9,19 +9,14 @@ const scale=3.1; // screen pixels per local metre
 function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(d,0,0,d,0,0);render()}
 window.addEventListener('resize',resize);
 function local(p,origin=player){const lat=(p.lat-origin.lat)*111320,lng=(p.lng-origin.lng)*111320*Math.cos(origin.lat*Math.PI/180);return{lng:lng, north:lat}}
-function project(p){const q=local(p);const z=scale*Math.pow(2,map.getZoom()-17);return{x:innerWidth/2+(q.lng-q.north)*z*.72,y:innerHeight/2+(q.lng+q.north)*z*.38}}
+function project(p){const q=map.latLngToContainerPoint(p);return{x:q.x,y:q.y}}
 function unprojectScreen(dx,dy){const z=scale*Math.pow(2,map.getZoom()-17),a=dx/(z*.72),b=dy/(z*.38);const east=(a+b)/2,north=(b-a)/2;return L.latLng(player.lat+north/111320,player.lng+east/(111320*Math.cos(player.lat*Math.PI/180)))}
 function distance(a,b){const q=local(b,a);return Math.hypot(q.lng,q.north)}
 function offset(p,east,north){return L.latLng(p.lat+north/111320,p.lng+east/(111320*Math.cos(p.lat*Math.PI/180)))}
 function pointInPoly(p,poly){const q=local(p),pts=poly.map(v=>local(L.latLng(v[0],v[1])));let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if(((a.north>q.north)!==(b.north>q.north))&&(q.lng<(b.lng-a.lng)*(q.north-a.north)/(b.north-a.north+1e-12)+a.lng))inside=!inside}return inside}
 function isBlocked(p){return buildingPolys.some(poly=>pointInPoly(p,poly))||obstacles.some(o=>distance(p,o)<12)}
 function path(points){if(!points.length)return;const p=points.map(v=>project(L.latLng(v[0],v[1])));ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);p.slice(1).forEach(v=>ctx.lineTo(v.x,v.y))}
-function renderGround(){ctx.fillStyle='#17252a';ctx.fillRect(0,0,innerWidth,innerHeight);
- // iso terrain grid gives a clear game-world plane
- ctx.strokeStyle='#294047';ctx.lineWidth=1;const spacing=90;for(let x=-innerWidth;x<innerWidth*2;x+=spacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+innerHeight*.72,innerHeight);ctx.stroke()}for(let x=-innerWidth;x<innerWidth*2;x+=spacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x-innerHeight*.72,innerHeight);ctx.stroke()}
- // mapped OSM roads become iso ground paths
- roadLines.forEach(road=>{path(road);ctx.strokeStyle='#47565b';ctx.lineWidth=road.width||7;ctx.lineCap='round';ctx.stroke();ctx.strokeStyle='#9a9a8870';ctx.lineWidth=1.2;ctx.stroke()});
-}
+function renderGround(){ctx.clearRect(0,0,innerWidth,innerHeight)}
 function drawBuilding(poly,index){const pts=poly.map(v=>project(L.latLng(v[0],v[1])));if(pts.length<3)return;const center=pts.reduce((a,p)=>({x:a.x+p.x/pts.length,y:a.y+p.y/pts.length}),{x:0,y:0});const h=8+Math.abs(Math.sin(index*8.12))*17,dx=h*.8,dy=-h*.85;
  // ground shadow
  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x+4,p.y+7):ctx.moveTo(p.x+4,p.y+7));ctx.closePath();ctx.fillStyle='#07101280';ctx.fill();
