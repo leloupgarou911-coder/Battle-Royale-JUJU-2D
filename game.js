@@ -1,17 +1,19 @@
 /* JUJU BR — isometric world prototype built from OpenStreetMap road/building geometry. */
 const map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([35.6971,-0.6308],17);
 const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});
+const voyagerLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'});
 const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});
 const terrainLayer=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap (CC-BY-SA)'});
-let mapStyle='street';streetLayer.addTo(map);
-function cycleMapStyle(){map.removeLayer(streetLayer);map.removeLayer(satelliteLayer);map.removeLayer(terrainLayer);mapStyle=mapStyle==='street'?'satellite':mapStyle==='satellite'?'terrain':'street';({street:streetLayer,satellite:satelliteLayer,terrain:terrainLayer})[mapStyle].addTo(map);const b=document.getElementById('mapStyle');if(b)b.textContent=mapStyle==='street'?'CARTE':mapStyle==='satellite'?'SATELLITE':'RELIEF';}
+let mapStyle='street',tileFallbackUsed=false;voyagerLayer.addTo(map);
+voyagerLayer.on('tileerror',()=>{if(!tileFallbackUsed&&map.hasLayer(voyagerLayer)){tileFallbackUsed=true;map.removeLayer(voyagerLayer);streetLayer.addTo(map);}});
+function cycleMapStyle(){[streetLayer,voyagerLayer,satelliteLayer,terrainLayer].forEach(layer=>{if(map.hasLayer(layer))map.removeLayer(layer)});mapStyle=mapStyle==='street'?'satellite':mapStyle==='satellite'?'terrain':'street';({street:voyagerLayer,satellite:satelliteLayer,terrain:terrainLayer})[mapStyle].addTo(map);const b=document.getElementById('mapStyle');if(b)b.textContent=mapStyle==='street'?'CARTE':mapStyle==='satellite'?'SATELLITE':'RELIEF';}
 
 L.control.zoom({position:'bottomright'}).addTo(map);
 const canvas=document.createElement('canvas');canvas.id='isoWorld';document.body.appendChild(canvas);const ctx=canvas.getContext('2d');
 let player=map.getCenter(),zoneCenter=player,bots=[],loot=[],buildingPolys=[],buildingMeta=[],roadLines=[],obstacles=[],waterPolys=[],forestPolys=[],greenPolys=[],cliffLines=[],worldFeatureLayer=null,eliminations=0,health=100,zoneRadius=2500,zoneCircle,inventory=0,gameEnded=false,countdown=120,interior=null;
 const keys={};let walkCycle=0,heading=0,worldLoaded=false,fetchTimer,lastQuery='',toastTimer;
 const scale=3.1; // screen pixels per local metre
-function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(d,0,0,d,0,0);render()}
+function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(d,0,0,d,0,0);map.invalidateSize({pan:false});render()}
 window.addEventListener('resize',resize);
 function local(p,origin=player){const lat=(p.lat-origin.lat)*111320,lng=(p.lng-origin.lng)*111320*Math.cos(origin.lat*Math.PI/180);return{lng:lng, north:lat}}
 function project(p){const q=map.latLngToContainerPoint(p);return{x:q.x,y:q.y}}
@@ -75,7 +77,8 @@ function drawInterior(){
  drawAvatar({x:innerWidth/2+interior.roomX*w*.28,y:innerHeight/2+8+interior.roomY*h*.28},'#38a9ef',walkCycle,heading,true);
  ctx.fillStyle='#d7e9f4';ctx.font='12px system-ui';ctx.fillText('WASD : se déplacer  •  E : récupérer  •  F : sortir',20,innerHeight-26);
 }
-function render(){if(!ctx)return;if(interior){drawInterior();return}renderGround();
+function drawRoads(){ctx.save();ctx.lineCap='round';ctx.lineJoin='round';for(const line of roadLines){if(line.length<2)continue;const pts=line.map(v=>project(L.latLng(v[0],v[1])));ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);const width=line.width||6;ctx.strokeStyle='rgba(20,37,45,.72)';ctx.lineWidth=Math.max(3,width+4);ctx.stroke();ctx.strokeStyle=width>=9?'#d8d1bd':width<=3?'#c5b99d':'#eee5d2';ctx.lineWidth=Math.max(1.5,width);ctx.stroke();if(width>=9){ctx.strokeStyle='rgba(255,255,255,.38)';ctx.lineWidth=1;ctx.setLineDash([7,8]);ctx.stroke();ctx.setLineDash([])}}ctx.restore()}
+function render(){if(!ctx)return;if(interior){drawInterior();return}renderGround();drawRoads();
  // painter order by screen depth: road/buildings, loot, bots, player
  const structures=buildingPolys.map((poly,i)=>({poly,i,y:poly.reduce((s,v)=>s+project(L.latLng(v[0],v[1])).y,0)/poly.length})).sort((a,b)=>a.y-b.y);
  structures.forEach(o=>drawBuilding(o.poly,o.i));loot.forEach(drawLoot);bots.forEach((b,i)=>drawAvatar(project(b.pos),'#f35d70',walkCycle*.4,i%4,false));drawAvatar(project(player),'#31a8ee',walkCycle,heading,true);
@@ -93,7 +96,7 @@ async function loadWorld(){if(map.getZoom()<15){toast('Zoom pour charger les rou
  if(worldFeatureLayer)map.removeLayer(worldFeatureLayer);worldFeatureLayer=L.geoJSON({type:'FeatureCollection',features},{style:f=>{const k=f.properties.kind;if(k==='water')return{color:'#4b9ec4',weight:1,fillColor:'#4b9ec4',fillOpacity:.78};if(k==='forest')return{color:'#286544',weight:1,fillColor:'#286544',fillOpacity:.62};if(k==='cliff')return{color:'#b77a54',weight:4,dashArray:'5 4'};if(k==='green')return{color:'#4d9164',weight:1,fillColor:'#397d50',fillOpacity:.55};if(k==='land')return{color:'#a9a17d',weight:1,fillColor:'#b8b08b',fillOpacity:.22};if(k==='building')return{color:'#53636a',weight:1,fillColor:'#87949a',fillOpacity:.22};return{color:'#68a9c5',weight:f.properties.class==='river'?5:3,opacity:.8};},onEachFeature:(f,l)=>{if(f.properties.kind==='building')l.bindTooltip('Bâtiment réel OpenStreetMap',{sticky:true});}}).addTo(map);worldLoaded=true;render();toast('Géographie chargée • '+buildingPolys.length+' bâtiments / '+roadLines.length+' routes / '+features.length+' éléments');}
  catch(e){toast('Données OSM momentanément indisponibles');render()}}
 map.on('moveend zoomend',()=>{clearTimeout(fetchTimer);fetchTimer=setTimeout(loadWorld,700)});loadWorld();
-function spawn(){for(let i=0;i<12;i++)bots.push({pos:offset(player,...randomOffset(900))});for(let i=0;i<18;i++)loot.push({pos:offset(player,...randomOffset(700))})}
+function spawn(){for(let i=0;i<12;i++)bots.push({pos:offset(player,...randomOffset(220))});for(let i=0;i<18;i++)loot.push({pos:offset(player,...randomOffset(180))})}
 function randomOffset(r){const a=Math.random()*Math.PI*2,d=Math.sqrt(Math.random())*r;return[Math.cos(a)*d,Math.sin(a)*d]}
 spawn();resize();
 function move(dir){keys[dir]=true}
@@ -117,7 +120,7 @@ render();toast('Monde isométrique prêt — recherche des données réelles');
 // JUJU WORLD: enter the playable world only after pressing PLAY.
 const homeNotice=document.getElementById('homeNotice');let noticeTimer;
 function showHomeNotice(message){homeNotice.textContent=message;homeNotice.classList.add('show');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>homeNotice.classList.remove('show'),2400)}
-document.getElementById('playBtn').addEventListener('click',()=>{document.body.classList.remove('home-active');document.body.classList.add('game-active');map.invalidateSize();makeZone();setTimeout(()=>{map.invalidateSize();loadWorld();render()},120);toast('Bienvenue dans JUJU WORLD')});
+document.getElementById('playBtn').addEventListener('click',()=>{document.body.classList.remove('home-active');document.body.classList.add('game-active');map.invalidateSize({pan:false});makeZone();requestAnimationFrame(()=>requestAnimationFrame(()=>{map.invalidateSize({pan:false});loadWorld();render()}));toast('Bienvenue dans JUJU WORLD')});
 document.getElementById('savesBtn').addEventListener('click',()=>showHomeNotice('Aucune sauvegarde pour le moment — bientôt disponible.'));
 document.getElementById('settingsBtn').addEventListener('click',()=>showHomeNotice('Paramètres : commandes WASD • zoom + / −'));
 document.getElementById('profileBtn').addEventListener('click',()=>showHomeNotice('Profil et progression — bientôt disponibles.'));
