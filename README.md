@@ -21,7 +21,7 @@ Pour lancer localement, utiliser un serveur HTTP (ex. `python -m http.server 800
 - Caméra centrée sur le personnage; obstacles bâtiments bloquent le déplacement.
 - Zone sûre, énergie, inventaire, recherche de ville et HUD conservés.
 
-## Limites
+## Relief et topographie\n- Altitudes échantillonnées à la demande via l'API Elevation d'Open-Meteo, basée sur le modèle Copernicus DEM GLO-90 (résolution de 90 m).\n- La grille d'altitude colore légèrement le terrain et adapte la vitesse selon la pente estimée; les descentes douces peuvent accélérer le déplacement.\n- Les cours d'eau OSM deviennent des obstacles, sauf au voisinage des ponts OSM. Les routes marquées `bridge` et `tunnel` ont un style différencié.\n- Attribution des données d'altitude : Open-Meteo et Copernicus DEM. Voir https://open-meteo.com/en/docs/elevation-api.\n\n## Limites
 C'est un prototype 2D canvas avec projection isométrique, pas un moteur 3D: modèles 3D et spritesheet d'animation non présents, caméra fixe, IA rudimentaire, pas de multijoueur. Les données OSM/Overpass et le géocodage demandent Internet; Overpass peut être temporairement indisponible. Le rendu n'a pas été vérifié dans un navigateur pour ce commit.
 
 ## Données
