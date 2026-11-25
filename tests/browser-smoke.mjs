@@ -47,9 +47,17 @@ try {
   assert.ok(Array.isArray(saved.loot) && saved.loot.length > 0);
   assert.ok(saved.loot.every(item => typeof item.type === 'string' && item.type.length > 0));
 
+  // Corrupt/legacy entries must be normalized instead of crashing the renderer.
+  await page.evaluate(() => {
+    const snapshot = JSON.parse(localStorage.getItem('juju-world-save-v1'));
+    snapshot.equipment = ['unknown-item'];
+    snapshot.loot[0].type = 'unknown-item';
+    localStorage.setItem('juju-world-save-v1', JSON.stringify(snapshot));
+  });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('.weapon b').textContent(), 'Aucun équipement');
   await page.waitForFunction(() => document.querySelector('#terrainReadout')?.textContent.includes('ALT. 25 m'), null, { timeout: 15000 });
 
   // Regression: the mobile D-pad must follow the selected ZQSD layout.
