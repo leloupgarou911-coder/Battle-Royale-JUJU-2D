@@ -113,6 +113,7 @@ try {
     const slots = JSON.parse(localStorage.getItem('juju-world-saves-v2'));
     slots[0].data.equipment = ['unknown-item'];
     slots[0].data.loot[0].type = 'unknown-item';
+    slots[0].data.health = 0;
     localStorage.setItem('juju-world-saves-v2', JSON.stringify(slots));
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -121,6 +122,7 @@ try {
   await page.locator('.save-slot').first().getByRole('button', { name: 'Charger' }).click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
   assert.equal(await page.locator('.weapon b').textContent(), 'Aucun équipement');
+  assert.equal(await page.locator('.health b').textContent(), '0', 'A saved zero health value must not be restored as full health');
   await page.waitForFunction(() => document.querySelector('#terrainReadout')?.textContent.includes('ALT. 25 m'), null, { timeout: 15000 });
 
   // Regression: the mobile D-pad must follow the selected ZQSD layout.
