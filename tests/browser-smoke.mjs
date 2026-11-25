@@ -107,6 +107,13 @@ try {
   assert.equal(await page.locator('.save-slot').count(), 6);
   await page.locator('.save-slot').first().getByRole('button', { name: 'Charger' }).click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
+  const checkpoint = await page.evaluate(() => ({lat:player.lat,lng:player.lng}));
+  await page.evaluate(() => { player = L.latLng(player.lat + 0.0005, player.lng); });
+  await page.locator('#manageSavesBtn').click();
+  await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
+  await page.locator('.save-slot').first().getByRole('button', { name: 'Charger' }).click();
+  const restoredCheckpoint = await page.evaluate(() => ({lat:player.lat,lng:player.lng}));
+  assert.ok(Math.abs(restoredCheckpoint.lat-checkpoint.lat)<1e-8, 'Loading the active slot must restore its saved checkpoint, not overwrite it with current state');
 
   // Corrupt entries must be normalized instead of crashing the renderer.
   await page.evaluate(() => {
