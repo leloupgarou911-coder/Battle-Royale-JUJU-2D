@@ -42,3 +42,18 @@
 
 /* Terrain data HUD */
 .terrain-readout{font-size:9px;letter-spacing:.6px;color:#83dcca;white-space:nowrap;min-width:145px;text-align:right;text-shadow:0 1px 4px #0008}@media(max-width:700px){.terrain-readout{display:none}}
+
+/* JUJU WORLD pixel terrain and settings */
+.leaflet-tile-pane{display:none!important}
+#isoWorld{image-rendering:pixelated}
+.settings-modal{display:none;position:fixed;z-index:3000;inset:0;background:#020910c9;place-items:center;padding:18px}
+.settings-modal.open{display:grid}
+.settings-card{position:relative;width:min(440px,94vw);padding:26px;background:#122334;border:1px solid #41647b;border-radius:16px;box-shadow:0 25px 80px #0009;color:#eaf5ff}
+.settings-card h2{margin:0 0 22px;font-size:24px}
+.settings-card label{display:block;margin:14px 0 8px;color:#b8ccda;font-size:13px}
+.settings-card select{width:100%;padding:12px;border-radius:8px;background:#0b1b29;color:#effaff;border:1px solid #426078}
+.settings-card p{color:#9eb4c6;font-size:12px;line-height:1.7}
+.settings-card input[type=checkbox]{accent-color:#2bc9ad;margin-right:8px}
+.settings-card>button:last-child{margin-top:14px;background:#28c9ad;border:0;border-radius:8px;padding:12px 16px;font-weight:800;cursor:pointer}
+.save-game-btn{border:1px solid #477168;background:#163b3a;color:#9cebd7;border-radius:8px;padding:9px 12px;font-weight:800;font-size:10px;cursor:pointer}
+@media(max-width:700px){.save-game-btn{padding:7px;font-size:9px}.settings-card{padding:20px}}
