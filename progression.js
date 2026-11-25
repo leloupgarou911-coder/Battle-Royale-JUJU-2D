@@ -175,7 +175,7 @@
   function applyLanguage() {
     const t=translations[language],set=(selector,key)=>{const el=$(selector);if(el&&t[key]!==undefined)el.textContent=t[key];};
     document.documentElement.lang=language;
-    set('.eyebrow','eyebrow');set('.home-copy h1','home-title');set('.home-copy>p','home-desc');
+    set('.eyebrow','eyebrow');set('.home-copy h1','home-title');set('.home-copy>p','home-desc');const disclosure=$('#prototypeDisclosure');if(disclosure)disclosure.textContent=language==='fr'?'Prototype solo · Bots simulés · Sauvegardes locales · Monde 2D isométrique · Aucun multijoueur en ligne':'Single-player prototype · Simulated bots · Local saves · Isometric 2D world · No online multiplayer';
     const itemNames=language==='fr'?{bandage:'Bandage',medkit:'Kit de soin',water:'Eau',food:'Ravitaillement',battery:'Batterie',map:'Fragment de carte'}:{bandage:'Bandage',medkit:'Medkit',water:'Water',food:'Supplies',battery:'Battery',map:'Map fragment'};Object.keys(itemNames).forEach(k=>{if(itemCatalog[k])itemCatalog[k].name=itemNames[k];});
     const playButton=$('#playBtn');if(playButton)playButton.innerHTML='<span>▶</span> '+t.play+' <small>'+t['play-sub']+'</small>';
     set('#savesBtn','saves');set('#settingsBtn','settings');set('#profileBtn','profile');
