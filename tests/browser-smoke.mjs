@@ -13,7 +13,7 @@ await page.route('https://nominatim.openstreetmap.org/**', route => route.fulfil
   contentType: 'application/json',
   body: JSON.stringify([{ lat: '35.6971', lon: '-0.6308', display_name: 'Oran, Algeria' }])
 }));
-for (const endpoint of ['https://overpass-api.de/**','https://overpass.kumi.systems/**','https://overpass.private.coffee/**']) {
+for (const endpoint of ['https://overpass-api.de/**','https://overpass.private.coffee/**','https://maps.mail.ru/osm/tools/overpass/**']) {
   await page.route(endpoint, async route => {
     const url = route.request().url();
     overpassCalls.push(url);
@@ -95,7 +95,7 @@ try {
   await page.locator('#searchCity').click();
   await page.locator('.city-result').first().click();
   await page.waitForFunction(() => document.querySelector('[data-world-status]')?.textContent.includes('Carte prête'), null, { timeout: 15000 });
-  assert.ok(overpassCalls.some(url => url.includes('overpass.kumi.systems')), 'Expected secondary Overpass endpoint to be used');
+  assert.ok(overpassCalls.some(url => url.includes('overpass.private.coffee')), 'Expected independent secondary Overpass endpoint to be used');
 
   // Total outage must expose a working retry control; the next attempt recovers.
   overpassMode = 'fail-all';
