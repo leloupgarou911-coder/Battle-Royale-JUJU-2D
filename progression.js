@@ -6,13 +6,12 @@
   const LANGUAGE_KEY = 'juju-language-v1';
   const MAX_SLOTS = 6;
   let activeSlotId = 'slot-1';
-  let language = localStorage.getItem(LANGUAGE_KEY) === 'en' ? 'en' : 'fr';
+  const $ = (selector) => document.querySelector(selector);
+  const safeRead = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+  let language = safeRead(LANGUAGE_KEY) === 'en' ? 'en' : 'fr';
   let lastEliminations = 0;
   let lastAutoSaveAt = 0;
   let sessionStartedAt = Date.now();
-
-  const $ = (selector) => document.querySelector(selector);
-  const safeRead = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
   const safeWrite = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };
   const cloneButton = (id, handler) => {
     const old = document.getElementById(id);
@@ -85,7 +84,7 @@
     try {
       player=L.latLng(s.player.lat,s.player.lng);
       zoneCenter=L.latLng(s.zoneCenter?.lat??s.player.lat,s.zoneCenter?.lng??s.player.lng);
-      bots=(Array.isArray(s.bots)?s.bots:[]).filter(b=>b?.pos&&Number.isFinite(b.pos.lat)&&Number.isFinite(b.pos.lng)).map(b=>({pos:L.latLng(b.pos.lat,b.pos.lng),health:b.health}));
+      bots=(Array.isArray(s.bots)?s.bots:[]).map(b=>{const p=b?.pos||b;return p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)?{pos:L.latLng(p.lat,p.lng),health:b.health}:null;}).filter(Boolean);
       loot=(Array.isArray(s.loot)?s.loot:[]).filter(o=>o&&Number.isFinite(o.lat)&&Number.isFinite(o.lng)).map(o=>({pos:L.latLng(o.lat,o.lng),type:itemCatalog[o.type]?o.type:'bandage'}));
       health=Math.max(0,Math.min(100,Number(s.health)||100));
       inventory=Math.max(0,Number(s.inventory)||0);
@@ -152,7 +151,8 @@
     const t=translations[language],set=(selector,key)=>{const el=$(selector);if(el&&t[key]!==undefined)el.textContent=t[key];};
     document.documentElement.lang=language;
     set('.eyebrow','eyebrow');set('.home-copy h1','home-title');set('.home-copy>p','home-desc');
-    set('#playBtn','play');set('#savesBtn','saves');set('#settingsBtn','settings');set('#profileBtn','profile');
+    const playButton=$('#playBtn');if(playButton)playButton.innerHTML='<span>▶</span> '+t.play+' <small>'+t['play-sub']+'</small>';
+    set('#savesBtn','saves');set('#settingsBtn','settings');set('#profileBtn','profile');
     set('.card-top span','world-explorer');set('.world-caption small','one-planet');set('.world-caption b','endless');set('.card-bottom span:first-child','global-map');set('.card-bottom span:last-child','open-world');
     const statLabels=$$('.stats small');['players','zone','kills'].forEach((k,i)=>{if(statLabels[i])statLabels[i].textContent=t[k];});
     const panels=$$('.left-panel .panel-title');['equipment','inventory','objective'].forEach((k,i)=>{if(panels[i])panels[i].textContent=t[k];});
@@ -162,7 +162,6 @@
     set('#cityModal h2','choose-city');set('#cityModal p','city-help');set('#searchCity','search');set('#pickMapLocation','pick-map');
     set('#settingsModal h2','settings-title');set('label[for="movementLayout"]','keyboard');set('label:has(#autoSaveToggle)','autosave');set('#saveSettings','save-settings');
     set('#saveLibraryTitle','save-title');set('#saveLibraryHint','save-hint');set('#profileTitle','profile-title');
-    const playSmall=$('#playBtn small');if(playSmall)playSmall.textContent=t['play-sub'];
     const saveLabel=$('#saveGameBtn');if(saveLabel)saveLabel.textContent=t.save;
     const languageBtn=$('#languageBtn');if(languageBtn)languageBtn.textContent=language==='fr'?'EN':'FR';
   }
