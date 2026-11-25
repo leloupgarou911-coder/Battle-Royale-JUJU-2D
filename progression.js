@@ -75,26 +75,27 @@
     return true;
   }
   function validSnapshot(s) {
-    return !!(s && s.version>=1 && s.player && Number.isFinite(s.player.lat) && Number.isFinite(s.player.lng) && Math.abs(s.player.lat)<=90 && Math.abs(s.player.lng)<=180);
+    return !!(s && (s.version===1 || s.version===2) && s.player && Number.isFinite(s.player.lat) && Number.isFinite(s.player.lng) && Math.abs(s.player.lat)<=90 && Math.abs(s.player.lng)<=180);
   }
   function loadSlot(id) {
     const slot=readSlots().find(s=>s.id===id);
     if(!slot || !validSnapshot(slot.data)){notify('Cet emplacement ne contient aucune sauvegarde valide.');return;}
+    if(document.body.classList.contains('game-active'))saveToSlot(activeSlotId,true);
     const s=slot.data;
     try {
       player=L.latLng(s.player.lat,s.player.lng);
       zoneCenter=L.latLng(s.zoneCenter?.lat??s.player.lat,s.zoneCenter?.lng??s.player.lng);
-      bots=(Array.isArray(s.bots)?s.bots:[]).map(b=>{const p=b?.pos||b;return p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)?{pos:L.latLng(p.lat,p.lng),health:b.health}:null;}).filter(Boolean);
-      loot=(Array.isArray(s.loot)?s.loot:[]).filter(o=>o&&Number.isFinite(o.lat)&&Number.isFinite(o.lng)).map(o=>({pos:L.latLng(o.lat,o.lng),type:itemCatalog[o.type]?o.type:'bandage'}));
-      health=Math.max(0,Math.min(100,Number(s.health)||100));
-      inventory=Math.max(0,Number(s.inventory)||0);
+      bots=(Array.isArray(s.bots)?s.bots.slice(0,100):[]).map(b=>{const p=b?.pos||b;return p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180?{pos:L.latLng(p.lat,p.lng),health:b.health}:null;}).filter(Boolean);
+      loot=(Array.isArray(s.loot)?s.loot.slice(0,2000):[]).filter(o=>o&&Number.isFinite(o.lat)&&Number.isFinite(o.lng)&&Math.abs(o.lat)<=90&&Math.abs(o.lng)<=180).map(o=>({pos:L.latLng(o.lat,o.lng),type:itemCatalog[o.type]?o.type:'bandage'}));
+      const savedHealth=Number(s.health);health=Number.isFinite(savedHealth)?Math.max(0,Math.min(100,savedHealth)):100;
+      inventory=Math.max(0,Math.min(10000,Number(s.inventory)||0));
       equipment=Array.isArray(s.equipment)?s.equipment.slice(0,6).map(v=>itemCatalog[v]?v:null):Array(6).fill(null);
       while(equipment.length<6)equipment.push(null);
       selectedSlot=Math.max(0,Math.min(5,Number(s.selectedSlot)||0));
       waypoint=s.waypoint&&Number.isFinite(s.waypoint.lat)&&Number.isFinite(s.waypoint.lng)?L.latLng(s.waypoint.lat,s.waypoint.lng):null;
       eliminations=Math.max(0,Number(s.eliminations)||0);
-      zoneRadius=Math.max(100,Number(s.zoneRadius)||2500);
-      countdown=Math.max(0,Number(s.countdown)||120);
+      const savedRadius=Number(s.zoneRadius);zoneRadius=Number.isFinite(savedRadius)?Math.max(100,Math.min(100000,savedRadius)):2500;
+      const savedCountdown=Number(s.countdown);countdown=Number.isFinite(savedCountdown)?Math.max(0,Math.min(86400,savedCountdown)):120;
       interior=null;gameEnded=false;worldLoaded=false;lastQuery='';
       const center=s.mapCenter&&Number.isFinite(s.mapCenter.lat)&&Number.isFinite(s.mapCenter.lng)?[s.mapCenter.lat,s.mapCenter.lng]:[player.lat,player.lng];
       map.setView(center,Math.max(15,Math.min(19,Number(s.mapZoom)||17)));
@@ -131,6 +132,7 @@
   }
   async function importBackup(file) {
     if(!file)return;
+    if(file.size>5*1024*1024){notify('Fichier trop volumineux (maximum 5 Mo).');return;}
     try {
       const payload=JSON.parse(await file.text());
       if(payload?.format!=='juju-world-backup'||!Array.isArray(payload.slots))throw Error('Invalid backup');
