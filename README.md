@@ -46,3 +46,11 @@ C'est un prototype 2D canvas avec projection isométrique, pas un moteur 3D: mod
 - Les cours intérieures des relations multipolygones OSM sont conservées comme trous dans les toitures et restent accessibles au déplacement.
 - Les voies ferrées sont dessinées séparément des routes.
 - Le culling utilise les boîtes géographiques des géométries afin de conserver les longues routes et grands bâtiments qui traversent l'écran sans sommet visible.
+
+
+## Détails des quartiers
+- Arbres ponctuels issus des nœuds `natural=tree` OSM, dessinés en symboles 2D.
+- Trottoirs et chemins piétons issus des voies `highway=footway`, `pedestrian` et `path`.
+- Passages piétons représentés lorsque des nœuds `highway=crossing` sont cartographiés.
+- Parkings représentés à partir des surfaces `amenity=parking`.
+- Les éléments sont limités à la zone Overpass chargée et dessinés dans la vue courante; la disponibilité dépend de la couverture OSM locale.
