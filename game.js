@@ -10,7 +10,10 @@ function cycleMapStyle(){[streetLayer,voyagerLayer,satelliteLayer,terrainLayer].
 L.control.zoom({position:'bottomright'}).addTo(map);
 const canvas=document.createElement('canvas');canvas.id='isoWorld';document.body.appendChild(canvas);const ctx=canvas.getContext('2d');
 let player=map.getCenter(),zoneCenter=player,bots=[],loot=[],buildingPolys=[],buildingMeta=[],roadLines=[],obstacles=[],waterPolys=[],waterLines=[],bridgeLines=[],tunnelLines=[],railLines=[],sidewalkLines=[],parkingPolys=[],treePoints=[],crossingPoints=[],forestPolys=[],greenPolys=[],cliffLines=[],elevationGrid=null,elevationLoading=false,elevationCellKey='',worldFeatureLayer=null,worldLoading=false,pendingWorldLoad=false,eliminations=0,health=100,zoneRadius=2500,zoneCircle,inventory=0,gameEnded=false,countdown=120,interior=null;
-const keys={};let movementLayout=localStorage.getItem('juju-movement-layout')||'wasd';let walkCycle=0,heading=0,worldLoaded=false,fetchTimer,lastQuery='',toastTimer;
+const keys={};let movementLayout=localStorage.getItem('juju-movement-layout')||'wasd';
+const itemCatalog={pistol:{name:'Pistolet',icon:'◉'},ammo:{name:'Munitions',icon:'▦'},bandage:{name:'Bandage',icon:'＋'},armor:{name:'Armure',icon:'⬡'},grenade:{name:'Bombe fumigène',icon:'✹'},medkit:{name:'Kit de soin',icon:'✚'}};
+let equipment=Array(6).fill(null),selectedSlot=0,playerAimAngle=0,projectiles=[],lastShotAt=0,waypoint=null,mousePoint={x:innerWidth/2,y:innerHeight/2};
+let walkCycle=0,heading=0,worldLoaded=false,fetchTimer,lastQuery='',toastTimer;
 const scale=3.1; // screen pixels per local metre
 function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(d,0,0,d,0,0);map.invalidateSize({pan:false});render()}
 window.addEventListener('resize',resize);
@@ -50,7 +53,7 @@ function drawBuilding(poly,index){const pts=poly.map(v=>project(L.latLng(v[0],v[
 }
 function drawAvatar(p,color,cycle,face,playerChar=false){
  const moving=playerChar&&Object.values(movementKeys()).some(k=>keys[k]),step=moving?Math.sin(cycle)*3.4:0,bob=moving?Math.abs(Math.sin(cycle*2))*1.5:0;
- ctx.save();ctx.translate(p.x,p.y+bob);
+ ctx.save();ctx.translate(p.x,p.y+bob);if(playerChar)ctx.rotate(playerAimAngle);
  ctx.fillStyle='#050b1080';ctx.beginPath();ctx.ellipse(0,12,12,5,0,0,Math.PI*2);ctx.fill();
  // backpack, articulated legs, jacket, head and direction detail
  ctx.fillStyle='#263744';ctx.roundRect(-9,-1,18,15,4);ctx.fill();
@@ -63,7 +66,7 @@ function drawAvatar(p,color,cycle,face,playerChar=false){
  ctx.fillStyle='#152936';ctx.roundRect(-10,-1,3,8,2);ctx.roundRect(7,-1,3,8,2);ctx.fill();
  ctx.strokeStyle='#e7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,1,9,0,Math.PI*2);ctx.stroke();ctx.restore()
 }
-function drawLoot(o){const p=project(o.pos);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.PI/4);ctx.fillStyle='#ffd15c';ctx.shadowColor='#ffd15c';ctx.shadowBlur=12;ctx.fillRect(-5,-5,10,10);ctx.restore()}
+function drawLoot(o){const p=project(o.pos),it=itemCatalog[o.type]||itemCatalog.ammo;ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle='#172b36';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd15c';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(it.icon,0,0);ctx.restore()}
 function interiorLayout(meta){
  const type=meta?.type||'immeuble',v=(meta?.variant||0)%3;
  const base={
