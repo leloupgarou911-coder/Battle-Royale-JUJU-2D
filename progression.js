@@ -109,10 +109,9 @@
       notify('Sauvegarde chargée : '+slot.name+'.');
     } catch(error) { console.error('Save load failed',error);notify('Cette sauvegarde est endommagée ou incompatible.'); }
   }
-  function openLibrary() { renderLibrary();$('#saveLibraryModal').classList.add('open'); }
+  function openLibrary() { const feedback=$('#saveLibraryFeedback');if(feedback)feedback.textContent='';renderLibrary();$('#saveLibraryModal').classList.add('open'); }
   function renderLibrary() {
     const container=$('#saveSlots');if(!container)return;container.replaceChildren();
-    const feedback=$('#saveLibraryFeedback');if(feedback)feedback.textContent='';
     readSlots().forEach(slot=>{
       const row=document.createElement('section');row.className='save-slot';
       const info=document.createElement('div');const title=document.createElement('strong');title.textContent=slot.name;
