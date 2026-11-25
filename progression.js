@@ -189,6 +189,7 @@
     set('#zoneStatus','zone-status');set('#routeDistance','no-waypoint');set('#clearWaypoint','clear-waypoint');set('.health>span','energy');set('#actionBtn','action');set('#saveGameBtn','save');set('#locate','city');
     set('#cityModal h2','choose-city');set('#cityModal p','city-help');set('#searchCity','search');set('#pickMapLocation','pick-map');
     set('#settingsModal h2','settings-title');set('label[for="movementLayout"]','keyboard');set('label:has(#autoSaveToggle)','autosave');set('#saveSettings','save-settings');
+    const manage=$('#manageSavesBtn');if(manage)manage.textContent=language==='fr'?'EMPLACEMENTS':'SLOTS';
     set('#saveLibraryTitle','save-title');set('#saveLibraryHint','save-hint');set('#profileTitle','profile-title');
     const exportBtn=$('#exportSaves'),importBtn=$('#importSaves'),newSlot=$('#newSaveSlot');
     if(exportBtn)exportBtn.textContent=language==='fr'?'Exporter mes sauvegardes':'Export my saves';
@@ -203,6 +204,7 @@
   cloneButton('savesBtn',openLibrary);
   cloneButton('profileBtn',openProfile);
   cloneButton('saveGameBtn',()=>saveToSlot(activeSlotId));
+  $('#manageSavesBtn').addEventListener('click',openLibrary);
   cloneButton('languageBtn',()=>{language=language==='fr'?'en':'fr';safeWrite(LANGUAGE_KEY,language);applyLanguage();notify(language==='fr'?'Interface en français.':'Interface in English.');});
   $('#closeSaveLibrary').addEventListener('click',()=>$('#saveLibraryModal').classList.remove('open'));
   $('#closeProfile').addEventListener('click',()=>$('#profileModal').classList.remove('open'));
