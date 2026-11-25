@@ -188,7 +188,10 @@ render();toast('Monde isométrique prêt — recherche des données réelles');
 // JUJU WORLD: enter the playable world only after pressing PLAY.
 const homeNotice=document.getElementById('homeNotice');let noticeTimer;
 function showHomeNotice(message){homeNotice.textContent=message;homeNotice.classList.add('show');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>homeNotice.classList.remove('show'),2400)}
-document.getElementById('playBtn').addEventListener('click',()=>{document.body.classList.remove('home-active');document.body.classList.add('game-active');map.invalidateSize({pan:false});makeZone();requestAnimationFrame(()=>requestAnimationFrame(()=>{map.invalidateSize({pan:false});loadWorld();render()}));toast('Bienvenue dans JUJU WORLD')});
+let choosingStartLocation=false;
+document.getElementById('playBtn').addEventListener('click',()=>{document.getElementById('cityModal').classList.add('open');document.getElementById('cityInput').focus()});
+document.getElementById('pickMapLocation').addEventListener('click',()=>{choosingStartLocation=true;document.getElementById('cityModal').classList.remove('open');document.body.classList.remove('home-active');document.body.classList.add('game-active');toast('Clique sur la carte pour choisir ton point de départ')});
+map.on('click',e=>{if(!choosingStartLocation)return;choosingStartLocation=false;startCity(e.latlng.lat,e.latlng.lng,'Position choisie sur la carte')});
 function saveLocalGame(){
  const snapshot={version:1,savedAt:new Date().toISOString(),player:{lat:player.lat,lng:player.lng},zoneCenter:{lat:zoneCenter.lat,lng:zoneCenter.lng},bots:bots.map(b=>({lat:b.pos.lat,lng:b.pos.lng})),loot:loot.map(o=>({lat:o.pos.lat,lng:o.pos.lng})),health,inventory,eliminations,zoneRadius,countdown};
  try{localStorage.setItem('juju-world-save-v1',JSON.stringify(snapshot));showHomeNotice('Partie sauvegardée sur cet appareil.')}catch(e){showHomeNotice('Sauvegarde impossible : espace local indisponible.')}
