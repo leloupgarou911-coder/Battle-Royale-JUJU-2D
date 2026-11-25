@@ -44,7 +44,7 @@
 .terrain-readout{font-size:9px;letter-spacing:.6px;color:#83dcca;white-space:nowrap;min-width:145px;text-align:right;text-shadow:0 1px 4px #0008}@media(max-width:700px){.terrain-readout{display:none}}
 
 /* JUJU WORLD pixel terrain and settings */
-.leaflet-tile-pane{display:none!important}
+#map .leaflet-tile-pane{display:block!important}
 #isoWorld{image-rendering:pixelated}
 .settings-modal{display:none;position:fixed;z-index:3000;inset:0;background:#020910c9;place-items:center;padding:18px}
 .settings-modal.open{display:grid}
