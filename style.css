@@ -115,3 +115,5 @@
  .modal-card{max-height:calc(100svh - 16px);overflow-y:auto;margin:auto}
  .world-load-status{top:48px;max-width:calc(100vw - 20px)}
 }
+
+#saveLibraryFeedback{min-height:18px;margin:8px 0;color:#9cebd7;font-size:12px;font-weight:700}
