@@ -36,6 +36,9 @@ await page.route('https://{s}.tile.openstreetmap.org/**', route => route.abort()
 try {
   await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
   // Language toggle must translate real interface content, not merely relabel itself.
+  await page.setViewportSize({ width: 390, height: 500 });
+  assert.equal(await page.locator('#homeScreen').evaluate(el => getComputedStyle(el).overflowY), 'auto');
+  await page.setViewportSize({ width: 1365, height: 900 });
   await page.locator('#languageBtn').click();
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.match(await page.locator('.home-copy h1').textContent(), /YOUR WORLD/);
@@ -80,9 +83,9 @@ try {
   assert.ok(twoSlots[1].data, 'Expected second save slot to contain a game');
   const [backupDownload] = await Promise.all([page.waitForEvent('download'), page.locator('#exportSaves').click()]);
   assert.equal(backupDownload.suggestedFilename(), 'juju-world-saves-backup.json');
-  const backupPayload = await page.evaluate(() => JSON.stringify({format:'juju-world-backup',version:1,slots:JSON.parse(localStorage.getItem('juju-world-saves-v2'))}));
+  const backupPayload = await page.evaluate(() => {const slots=JSON.parse(localStorage.getItem('juju-world-saves-v2'));slots[1].data=null;slots[1].savedAt=null;return JSON.stringify({format:'juju-world-backup',version:1,slots});});
   await page.locator('#importSavesFile').setInputFiles({name:'juju-backup.json',mimeType:'application/json',buffer:Buffer.from(backupPayload)});
-  await page.waitForFunction(() => JSON.parse(localStorage.getItem('juju-world-saves-v2') || '[]').length === 6);
+  await page.waitForFunction(() => {const slots=JSON.parse(localStorage.getItem('juju-world-saves-v2') || '[]');return slots.length===6 && slots[1].data===null;});
   await page.locator('#closeSaveLibrary').click();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
@@ -108,7 +111,10 @@ try {
 
   // Regression: the mobile D-pad must follow the selected ZQSD layout.
   await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.setViewportSize({ width: 390, height: 500 });
   await page.locator('#settingsBtn').click();
+  const settingsBox = await page.locator('#settingsModal .settings-card').boundingBox();
+  assert.ok(settingsBox && settingsBox.y >= 0 && settingsBox.y + settingsBox.height <= 500, 'Settings dialog should fit or scroll within a short mobile viewport');
   await page.locator('#movementLayout').selectOption('zqsd');
   await page.locator('#saveSettings').click();
   await page.locator('#playBtn').click();
