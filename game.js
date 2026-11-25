@@ -147,7 +147,8 @@ function drawCyberCity(){if(mapStyle!=='cyber')return;const bounds=map.getBounds
  // Existing mapped street lamps become small pools of light.
  for(const v of streetLampPoints){const p=L.latLng(v[0],v[1]);if(!bounds.contains(p))continue;const q=project(p);const glow=ctx.createRadialGradient(q.x,q.y,1,q.x,q.y,22);glow.addColorStop(0,'rgba(102,233,255,.40)');glow.addColorStop(1,'rgba(102,233,255,0)');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(q.x,q.y,22,0,Math.PI*2);ctx.fill();ctx.fillStyle='#baf8ff';ctx.fillRect(q.x-1,q.y-1,2,2);}
  ctx.restore();}
-\nfunction render(){if(!ctx)return;if(interior){drawInterior();return}renderGround();drawElevation();drawRoads();drawUrbanDetails();
+
+function render(){if(!ctx)return;if(interior){drawInterior();return}renderGround();drawElevation();drawRoads();drawUrbanDetails();
  // painter order by screen depth: road/buildings, loot, bots, player
  const visibleBounds=map.getBounds(),structures=[];for(let i=0;i<buildingPolys.length;i++){const poly=buildingPolys[i];if(!geometryVisible(poly,visibleBounds))continue;let y=0;for(const v of poly)y+=project(L.latLng(v[0],v[1])).y;structures.push({poly,i,y:y/poly.length})}structures.sort((a,b)=>a.y-b.y);
  structures.forEach(o=>drawBuilding(o.poly,o.i));drawCyberCity();loot.forEach(o=>{if(visibleBounds.contains(o.pos))drawLoot(o)});bots.forEach((b,i)=>{if(visibleBounds.contains(b.pos))drawAvatar(project(b.pos),'#f35d70',walkCycle*.4,i%4,false)});drawAvatar(project(player),'#31a8ee',walkCycle,heading,true);
