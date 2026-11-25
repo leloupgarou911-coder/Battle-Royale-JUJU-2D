@@ -18,7 +18,8 @@ for (const endpoint of ['https://overpass-api.de/**','https://overpass.private.c
     const url = route.request().url();
     overpassCalls.push(url);
     const isPrimary = url.includes('overpass-api.de');
-    if (overpassMode === 'fail-all' || (overpassMode === 'fail-first' && isPrimary)) {
+    const isSecondary = url.includes('overpass.private.coffee');
+    if (overpassMode === 'fail-all' || (overpassMode === 'fail-first' && isPrimary) || (overpassMode === 'fail-first-two' && (isPrimary || isSecondary))) {
       await route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporary test outage' });
       return;
     }
@@ -96,6 +97,16 @@ try {
   await page.locator('.city-result').first().click();
   await page.waitForFunction(() => document.querySelector('[data-world-status]')?.textContent.includes('Carte prête'), null, { timeout: 15000 });
   assert.ok(overpassCalls.some(url => url.includes('overpass.private.coffee')), 'Expected independent secondary Overpass endpoint to be used');
+
+  // If the first two independent services fail, the third must be tried.
+  overpassMode = 'fail-first-two';
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('#playBtn').click();
+  await page.locator('#cityInput').fill('Oran');
+  await page.locator('#searchCity').click();
+  await page.locator('.city-result').first().click();
+  await page.waitForFunction(() => document.querySelector('[data-world-status]')?.textContent.includes('Carte prête'), null, { timeout: 15000 });
+  assert.ok(overpassCalls.some(url => url.includes('maps.mail.ru')), 'Expected third independent Overpass endpoint to be used');
 
   // Total outage must expose a working retry control; the next attempt recovers.
   overpassMode = 'fail-all';
