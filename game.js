@@ -5,7 +5,7 @@ const voyagerLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/vo
 const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});
 const terrainLayer=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap (CC-BY-SA)'});
 let mapStyle='street';streetLayer.addTo(map);
-function setMapStyle(style){[streetLayer,voyagerLayer,satelliteLayer,terrainLayer].forEach(layer=>{if(map.hasLayer(layer))map.removeLayer(layer)});mapStyle=style;({street:voyager:voyagerLayer,satellite:satelliteLayer,terrain:terrainLayer,cyber:satelliteLayer})[mapStyle].addTo(map);document.body.classList.toggle('cyber-map',mapStyle==='cyber');const b=document.getElementById('mapStyle');if(b)b.textContent=({street:'CARTE',satellite:'SATELLITE',terrain:'RELIEF',cyber:'NEON'})[mapStyle]||'CARTE';}
+function setMapStyle(style){[streetLayer,voyagerLayer,satelliteLayer,terrainLayer].forEach(layer=>{if(map.hasLayer(layer))map.removeLayer(layer)});mapStyle=style;({street:voyagerLayer,satellite:satelliteLayer,terrain:terrainLayer,cyber:satelliteLayer})[mapStyle].addTo(map);document.body.classList.toggle('cyber-map',mapStyle==='cyber');const b=document.getElementById('mapStyle');if(b)b.textContent=({street:'CARTE',satellite:'SATELLITE',terrain:'RELIEF',cyber:'NEON'})[mapStyle]||'CARTE';}
 function cycleMapStyle(){const order=['cyber','street','satellite','terrain'];setMapStyle(order[(order.indexOf(mapStyle)+1)%order.length]);}
 
 L.control.zoom({position:'bottomright'}).addTo(map);
