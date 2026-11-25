@@ -9,7 +9,7 @@ let citySearchMode = 'normal';
 const overpassCalls = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 
-await page.route('https://photon.komoot.io/**', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({features:[{geometry:{coordinates:[-0.6308,35.6971]},properties:{name:'Oran',country:'Algeria'}}]})}));
+await page.route('https://photon.komoot.io/**', route => citySearchMode === 'slow' ? route.fulfill({status:503,contentType:'application/json',body:'{}'}) : route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({features:[{geometry:{coordinates:[-0.6308,35.6971]},properties:{name:'Oran',country:'Algeria'}}]})}));
 await page.route('https://nominatim.openstreetmap.org/**', async route => {
   if (citySearchMode === 'slow') {
     await new Promise(resolve => setTimeout(resolve, 12000));
