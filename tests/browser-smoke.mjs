@@ -9,6 +9,7 @@ let citySearchMode = 'normal';
 const overpassCalls = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 
+await page.route('https://photon.komoot.io/**', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({features:[{geometry:{coordinates:[-0.6308,35.6971]},properties:{name:'Oran',country:'Algeria'}}]})}));
 await page.route('https://nominatim.openstreetmap.org/**', async route => {
   if (citySearchMode === 'slow') {
     await new Promise(resolve => setTimeout(resolve, 12000));
@@ -39,6 +40,8 @@ await page.route('https://{s}.tile.openstreetmap.org/**', route => route.abort()
 
 try {
   await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => window.L && document.querySelector('#map .leaflet-container'), null, { timeout: 20000 });
+  assert.match(await page.locator('#prototypeDisclosure').textContent(), /Prototype solo.*Bots simulés.*2D isométrique/);
   // Language toggle must translate real interface content, not merely relabel itself.
   await page.setViewportSize({ width: 390, height: 500 });
   assert.equal(await page.locator('#homeScreen').evaluate(el => getComputedStyle(el).overflowY), 'auto');
@@ -46,6 +49,7 @@ try {
   await page.locator('#languageBtn').click();
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.match(await page.locator('.home-copy h1').textContent(), /YOUR WORLD/);
+  assert.match(await page.locator('#prototypeDisclosure').textContent(), /Single-player prototype.*Simulated bots.*No online multiplayer/);
   assert.equal(await page.locator('#playBtn').innerText().then(v=>v.includes('PLAY')), true);
   await page.locator('#languageBtn').click();
   assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
