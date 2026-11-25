@@ -9,7 +9,7 @@ function setMapStyle(style){[streetLayer,voyagerLayer,satelliteLayer,terrainLaye
 function cycleMapStyle(){const order=['cyber','street','satellite','terrain'];setMapStyle(order[(order.indexOf(mapStyle)+1)%order.length]);}
 
 const zoomControl=L.control.zoom({position:'bottomright'}).addTo(map);
-function lockGameplayCamera(){map.setMinZoom(17);map.setMaxZoom(17);map.setZoom(17,{animate:false});['scrollWheelZoom','doubleClickZoom','boxZoom','keyboard','touchZoom'].forEach(k=>{if(map[k]?.disable)map[k].disable()});if(map.zoomControl)map.removeControl(zoomControl);if(map.dragging)map.dragging.disable();}
+function lockGameplayCamera(){map.setMinZoom(17);map.setMaxZoom(17);map.setZoom(17,{animate:false});['scrollWheelZoom','doubleClickZoom','boxZoom','keyboard','touchZoom'].forEach(k=>{if(map[k]?.disable)map[k].disable()});map.removeControl(zoomControl);if(map.dragging)map.dragging.disable();}
 function unlockGameplayCamera(){map.setMinZoom(2);map.setMaxZoom(20);['scrollWheelZoom','doubleClickZoom','boxZoom','keyboard','touchZoom','dragging'].forEach(k=>{if(map[k]?.enable)map[k].enable()});}
 const canvas=document.createElement('canvas');canvas.id='isoWorld';document.body.appendChild(canvas);const ctx=canvas.getContext('2d');
 let player=map.getCenter(),zoneCenter=player,bots=[],loot=[],buildingPolys=[],buildingMeta=[],roadLines=[],obstacles=[],waterPolys=[],waterLines=[],bridgeLines=[],tunnelLines=[],railLines=[],sidewalkLines=[],parkingPolys=[],treePoints=[],crossingPoints=[],streetLampPoints=[],forestPolys=[],greenPolys=[],cliffLines=[],elevationGrid=null,elevationLoading=false,elevationCellKey='',worldFeatureLayer=null,worldLoading=false,eliminations=0,health=100,zoneRadius=2500,zoneCircle,inventory=0,gameEnded=false,countdown=120,interior=null;
@@ -191,7 +191,7 @@ async function loadWorld(forceRetry=false){if(!document.body.classList.contains(
  catch(e){lastQuery='';setWorldLoadState('Chargement impossible. Vérifie ta connexion puis réessaie.',false,true);console.warn('World data unavailable',e);render()}finally{worldLoading=false}}
 map.on('moveend zoomend',()=>{if(!document.body.classList.contains('game-active'))return;clearTimeout(fetchTimer);fetchTimer=setTimeout(()=>{if(!worldLoading)loadWorld();loadElevation()},450)});
 let nextBotSpawnAt=0;const MAX_BOTS=12;
-function spawn(){bots=[];nextBotSpawnAt=Date.now()+12000+Math.random()*10000;const types=['bandage','medkit','water','food','battery','map'];for(let i=0;i<18;i++)loot.push({pos:offset(player,...randomOffset(180)),type:types[i%types.length]})}
+function spawn(){bots=[];nextBotSpawnAt=Date.now()+12000+Math.random()*10000;const playerCount=document.getElementById('players');if(playerCount)playerCount.textContent='1';const types=['bandage','medkit','water','food','battery','map'];for(let i=0;i<18;i++)loot.push({pos:offset(player,...randomOffset(180)),type:types[i%types.length]})}
 function spawnRoamingBot(){if(gameEnded||bots.length>=MAX_BOTS)return;const angle=Math.random()*Math.PI*2,range=520+Math.random()*780,pos=offset(player,Math.cos(angle)*range,Math.sin(angle)*range);if(distance(pos,player)<450||isBlocked(pos))return;bots.push({pos,spawnedAt:Date.now(),wanderSeed:Math.random()*Math.PI*2});document.getElementById('players').textContent=String(bots.length+1);toast('Signal détecté à proximité');}
 function randomOffset(r){const a=Math.random()*Math.PI*2,d=Math.sqrt(Math.random())*r;return[Math.cos(a)*d,Math.sin(a)*d]}
 spawn();resize();
