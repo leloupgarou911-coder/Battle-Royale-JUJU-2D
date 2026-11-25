@@ -27,7 +27,18 @@ function terrainSpeed(p){if(roadLines.some(line=>line.some((v,i)=>i<line.length-
 function elevationAt(p){const g=elevationGrid;if(!g||!g.values.length)return null;const fx=(p.lng-g.west)/(g.east-g.west)*(g.cols-1),fy=(g.north-p.lat)/(g.north-g.south)*(g.rows-1);if(fx<0||fy<0||fx>g.cols-1||fy>g.rows-1)return null;const x=Math.min(g.cols-2,Math.floor(fx)),y=Math.min(g.rows-2,Math.floor(fy)),tx=fx-x,ty=fy-y,a=g.values[y*g.cols+x],b=g.values[y*g.cols+x+1],c=g.values[(y+1)*g.cols+x],d=g.values[(y+1)*g.cols+x+1];return a*(1-tx)*(1-ty)+b*tx*(1-ty)+c*(1-tx)*ty+d*tx*ty}
 function slopeFactor(a,b){const ea=elevationAt(a),eb=elevationAt(b);if(ea===null||eb===null)return 1;const grade=(eb-ea)/Math.max(1,distance(a,b));return grade>.22?.52:grade>.12?.7:grade>.055?.86:grade<-.18?1.12:grade<-.08?1.06:1}
 function path(points){if(!points.length)return;const p=points.map(v=>project(L.latLng(v[0],v[1])));ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);p.slice(1).forEach(v=>ctx.lineTo(v.x,v.y))}
-function renderGround(){ctx.clearRect(0,0,innerWidth,innerHeight)}
+function renderGround(){
+ ctx.clearRect(0,0,innerWidth,innerHeight);
+ const cell=28,center=map.latLngToContainerPoint(map.getCenter()),ox=((center.x%cell)+cell)%cell,oy=((center.y%cell)+cell)%cell;
+ for(let y=-cell;y<innerHeight+cell;y+=cell)for(let x=-cell;x<innerWidth+cell;x+=cell){
+  const gx=Math.floor((x-center.x)/cell),gy=Math.floor((y-center.y)/cell),seed=Math.abs((gx*73856093)^(gy*19349663)),v=seed%11;
+  ctx.fillStyle=v<2?'#a9b88c':v<4?'#b9c49a':v<6?'#c7c49a':v<8?'#b5c39a':'#c4c9a0';
+  ctx.fillRect(Math.floor(x+ox),Math.floor(y+oy),cell+1,cell+1);
+  ctx.fillStyle='rgba(67,91,62,.10)';ctx.fillRect(Math.floor(x+ox+5),Math.floor(y+oy+6),5,4);
+ }
+ function terrainPoly(poly,color){if(!geometryVisible(poly,map.getBounds()))return;const pts=poly.map(v=>project(L.latLng(v[0],v[1])));if(pts.length<3)return;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='rgba(45,73,57,.28)';ctx.lineWidth=2;ctx.stroke()}
+ greenPolys.forEach(p=>terrainPoly(p,'#83ad79'));forestPolys.forEach(p=>terrainPoly(p,'#477d59'));waterPolys.forEach(p=>terrainPoly(p,'#65a9c1'));
+}
 function drawBuilding(poly,index){const pts=poly.map(v=>project(L.latLng(v[0],v[1])));if(pts.length<3)return;const center=pts.reduce((a,p)=>({x:a.x+p.x/pts.length,y:a.y+p.y/pts.length}),{x:0,y:0}),meta=buildingMeta[index]||{},h=Math.max(7,Math.min(58,meta.height||meta.levels*3.1||8+Math.abs(Math.sin(index*8.12))*17)),floors=Math.max(1,Math.min(12,meta.levels||Math.round(h/3.2))),dx=h*.8,dy=-h*.85;
  // ground shadow
  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x+4,p.y+7):ctx.moveTo(p.x+4,p.y+7));ctx.closePath();ctx.fillStyle='#07101280';ctx.fill();
