@@ -175,6 +175,7 @@
     const t=translations[language],set=(selector,key)=>{const el=$(selector);if(el&&t[key]!==undefined)el.textContent=t[key];};
     document.documentElement.lang=language;
     set('.eyebrow','eyebrow');set('.home-copy h1','home-title');set('.home-copy>p','home-desc');
+    const itemNames=language==='fr'?{bandage:'Bandage',medkit:'Kit de soin',water:'Eau',food:'Ravitaillement',battery:'Batterie',map:'Fragment de carte'}:{bandage:'Bandage',medkit:'Medkit',water:'Water',food:'Supplies',battery:'Battery',map:'Map fragment'};Object.keys(itemNames).forEach(k=>{if(itemCatalog[k])itemCatalog[k].name=itemNames[k];});
     const playButton=$('#playBtn');if(playButton)playButton.innerHTML='<span>▶</span> '+t.play+' <small>'+t['play-sub']+'</small>';
     set('#savesBtn','saves');set('#settingsBtn','settings');set('#profileBtn','profile');
     set('.card-top span','world-explorer');set('.world-caption small','one-planet');set('.world-caption b','endless');set('.card-bottom span:first-child','global-map');set('.card-bottom span:last-child','open-world');
@@ -217,6 +218,10 @@
   $('#importSavesFile').addEventListener('change',e=>{importBackup(e.target.files?.[0]);e.target.value='';});
   ['saveLibraryModal','profileModal'].forEach(id=>$('#'+id).addEventListener('click',e=>{if(e.target.id===id)e.currentTarget.classList.remove('open');}));
 
+  const originalToast=toast;
+  toast=function(message){if(language==='en'&&typeof message==='string'){const pairs=[['Inventaire plein — G pour jeter','Inventory full — press G to drop'],['Emplacement vide','Empty slot'],['Soin utilisé','Healing item used'],['Sortie du bâtiment','Exited the building'],['Entrée — F pour ressortir','Entered building — press F to exit'],['Approche la façade d’un bâtiment pour entrer','Approach a building facade to enter'],['Porte ouverte','Door opened'],['Porte fermée','Door closed'],['Approche de l’escalier pour changer d’étage','Approach the stairs to change floors'],['Repère ajouté','Waypoint added'],['Destination atteinte — repère effacé','Destination reached — waypoint cleared'],['Obstacle — contourne le bâtiment','Obstacle — go around the building'],['Bandage récupéré !','Bandage collected!'],['Approche l’objet lumineux puis appuie E','Approach the glowing item and press E'],['Approche un objet puis appuie E','Approach an item and press E'],['Bot retiré du match — action réussie','Bot removed from the match'],['Action effectuée — aucun bot à proximité','Action performed — no bot nearby'],['Zone sûre qui rétrécit','The safe zone is shrinking'],['Monde isométrique prêt — recherche des données réelles','Isometric world ready — loading real-world data']];for(const [fr,en] of pairs)message=message.replace(fr,en);message=message.replace('Géographie chargée','Geography loaded').replace('bâtiments','buildings').replace('routes','roads').replace('voies ferrées','railways');}return originalToast(message);};
+  const originalFinish=finish;
+  finish=function(message){return originalFinish(language==='en'&&message==='Tu es resté hors de la zone sûre'?'You stayed outside the safe zone':message);};
   const originalCycleMapStyle=cycleMapStyle;
   cycleMapStyle=function(){originalCycleMapStyle();const b=$('#mapStyle');if(b&&language==='en')b.textContent=mapStyle==='street'?'MAP':mapStyle==='satellite'?'SATELLITE':'TERRAIN';};
   const originalSetWorldLoadState=setWorldLoadState;
