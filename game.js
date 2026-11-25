@@ -4,8 +4,7 @@ const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.pn
 const voyagerLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'});
 const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});
 const terrainLayer=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap (CC-BY-SA)'});
-let mapStyle='street',tileFallbackUsed=false;voyagerLayer.addTo(map);
-voyagerLayer.on('tileerror',()=>{if(!tileFallbackUsed&&map.hasLayer(voyagerLayer)){tileFallbackUsed=true;map.removeLayer(voyagerLayer);streetLayer.addTo(map);}});
+let mapStyle='street';streetLayer.addTo(map);
 function cycleMapStyle(){[streetLayer,voyagerLayer,satelliteLayer,terrainLayer].forEach(layer=>{if(map.hasLayer(layer))map.removeLayer(layer)});mapStyle=mapStyle==='street'?'satellite':mapStyle==='satellite'?'terrain':'street';({street:voyagerLayer,satellite:satelliteLayer,terrain:terrainLayer})[mapStyle].addTo(map);const b=document.getElementById('mapStyle');if(b)b.textContent=mapStyle==='street'?'CARTE':mapStyle==='satellite'?'SATELLITE':'RELIEF';}
 
 L.control.zoom({position:'bottomright'}).addTo(map);
