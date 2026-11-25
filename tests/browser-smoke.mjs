@@ -93,6 +93,7 @@ try {
   await page.locator('#manageSavesBtn').click();
   await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
   await page.locator('.save-slot').nth(1).getByRole('button', { name: 'Sauvegarder ici' }).click();
+  assert.match(await page.locator('#saveLibraryFeedback').textContent(), /Partie sauvegardée/);
   const twoSlots = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2')));
   assert.ok(twoSlots[1].data, 'Expected second save slot to contain a game');
   const [backupDownload] = await Promise.all([page.waitForEvent('download'), page.locator('#exportSaves').click()]);
