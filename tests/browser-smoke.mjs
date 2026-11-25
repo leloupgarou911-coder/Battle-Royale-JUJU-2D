@@ -5,14 +5,18 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
 const pageErrors = [];
 let overpassMode = 'normal';
+let citySearchMode = 'normal';
 const overpassCalls = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 
-await page.route('https://nominatim.openstreetmap.org/**', route => route.fulfill({
-  status: 200,
-  contentType: 'application/json',
-  body: JSON.stringify([{ lat: '35.6971', lon: '-0.6308', display_name: 'Oran, Algeria' }])
-}));
+await page.route('https://nominatim.openstreetmap.org/**', async route => {
+  if (citySearchMode === 'slow') {
+    await new Promise(resolve => setTimeout(resolve, 12000));
+    try { await route.fulfill({status:200,contentType:'application/json',body:'[]'}); } catch {}
+    return;
+  }
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{lat:'35.6971',lon:'-0.6308',display_name:'Oran, Algeria'}])});
+});
 for (const endpoint of ['https://overpass-api.de/**','https://overpass.private.coffee/**','https://maps.mail.ru/osm/tools/overpass/**']) {
   await page.route(endpoint, async route => {
     const url = route.request().url();
@@ -70,6 +74,16 @@ try {
   await page.waitForTimeout(6000);
   let autosaved = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2') || '[]'));
   assert.ok(autosaved[0]?.data, 'Expected periodic autosave during active gameplay');
+  // Nominatim requests must time out cleanly and release the search button.
+  await page.locator('#locate').click();
+  citySearchMode = 'slow';
+  await page.locator('#cityInput').fill('Very slow location');
+  await page.locator('#searchCity').click();
+  await page.getByText(/Recherche indisponible|City search unavailable/).waitFor({state:'visible',timeout:12000});
+  assert.equal(await page.locator('#searchCity').isDisabled(), false);
+  citySearchMode = 'normal';
+  await page.locator('#closeModal').click();
+
   await page.locator('#saveGameBtn').click();
   const library = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2')));
   assert.equal(library.length, 6, 'Expected six independent save slots');
