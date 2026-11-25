@@ -63,11 +63,27 @@ try {
   const tileDisplay = await page.locator('#map .leaflet-tile-pane').evaluate(el => getComputedStyle(el).display);
   assert.notEqual(tileDisplay, 'none');
 
+  // Periodic autosave must create a recoverable save even without clicking the save button.
+  await page.waitForTimeout(6000);
+  let autosaved = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2') || '[]'));
+  assert.ok(autosaved[0]?.data, 'Expected periodic autosave during active gameplay');
   await page.locator('#saveGameBtn').click();
   const library = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2')));
   assert.equal(library.length, 6, 'Expected six independent save slots');
   assert.ok(library[0].data && Array.isArray(library[0].data.loot) && library[0].data.loot.length > 0);
   assert.ok(library[0].data.loot.every(item => typeof item.type === 'string' && item.type.length > 0));
+  // Multiple slots are usable from the in-game manager and backups can move between devices.
+  await page.locator('#manageSavesBtn').click();
+  await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
+  await page.locator('.save-slot').nth(1).getByRole('button', { name: 'Sauvegarder ici' }).click();
+  const twoSlots = await page.evaluate(() => JSON.parse(localStorage.getItem('juju-world-saves-v2')));
+  assert.ok(twoSlots[1].data, 'Expected second save slot to contain a game');
+  const [backupDownload] = await Promise.all([page.waitForEvent('download'), page.locator('#exportSaves').click()]);
+  assert.equal(backupDownload.suggestedFilename(), 'juju-world-saves-backup.json');
+  const backupPayload = await page.evaluate(() => JSON.stringify({format:'juju-world-backup',version:1,slots:JSON.parse(localStorage.getItem('juju-world-saves-v2'))}));
+  await page.locator('#importSavesFile').setInputFiles({name:'juju-backup.json',mimeType:'application/json',buffer:Buffer.from(backupPayload)});
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('juju-world-saves-v2') || '[]').length === 6);
+  await page.locator('#closeSaveLibrary').click();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
   await page.locator('#saveLibraryModal.open').waitFor({ state: 'visible' });
