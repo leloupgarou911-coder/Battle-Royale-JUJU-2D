@@ -31,3 +31,5 @@
 
 /* Building interiors */
 #isoWorld{image-rendering:auto}.interior-note{display:none}
+
+#mapStyle{background:#28475d!important;color:#eaf6ff!important;border:1px solid #6c91a8!important}#mapStyle:hover{background:#35627d!important}@media(max-width:700px){#mapStyle{padding:7px 8px;font-size:10px}}
