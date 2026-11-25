@@ -2,12 +2,18 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JUJU Battle Royale — Real World</title>
+<title>JUJU WORLD — Explore Beyond the Map</title>
 <meta name="description" content="Prototype Battle Royale 2D sur une carte réelle du monde.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
-<body>
+<body class="home-active">
+<section id="homeScreen" class="home-screen" aria-label="Accueil JUJU WORLD">
+<header class="home-header"><a class="home-brand" href="#" aria-label="JUJU WORLD"><span class="home-logo">J</span><span><b>JUJU WORLD</b><small>EXPLORE BEYOND THE MAP</small></span></a><div class="home-actions"><span class="alpha-tag">PRE-ALPHA</span><button id="languageBtn" class="language-btn">EN / FR</button></div></header>
+<main class="home-main"><section class="home-copy"><div class="eyebrow"><i></i> THE WORLD IS WAITING</div><h1>YOUR WORLD.<br><em>YOUR ADVENTURE.</em></h1><p>Explore real places, discover new cities and create your own journey<br class="desktop-break"> across a living world map.</p><div class="home-buttons"><button id="playBtn" class="play-btn"><span>▶</span> PLAY <small>START EXPLORING</small></button><button id="savesBtn" class="secondary-btn">▤ &nbsp; MY SAVES</button></div><nav class="home-links"><button id="settingsBtn">⚙ SETTINGS</button><button id="profileBtn">◉ PROFILE & PROGRESSION</button></nav></section>
+<aside class="world-card"><div class="card-top"><span><i></i> WORLD EXPLORER</span><b>01</b></div><div class="globe-stage"><div class="globe"><span class="globe-longitude"></span><span class="globe-latitude"></span><span class="globe-orbit"></span></div><span class="coordinates">31°37′ N &nbsp; 08°00′ E</span></div><div class="world-caption"><small>ONE PLANET</small><b>ENDLESS PLACES</b></div><div class="card-bottom"><span>GLOBAL MAP</span><span>OPEN WORLD EXPERIENCE</span></div></aside></main>
+<footer class="home-footer"><span>JUJU WORLD &nbsp; • &nbsp; ALPHA 0.3</span><span>BUILT FOR EXPLORATION</span></footer><div id="homeNotice" class="home-notice" role="status"></div></section>
+
 <div id="map" aria-label="Carte du monde jouable"></div>
 <div class="topbar"><div class="brand"><span class="logo">J</span><div><strong>JUJU BR</strong><small>REAL WORLD • 2D</small></div></div>
 <div class="stats"><div><small>JOUEURS</small><b id="players">26</b></div><div><small>ZONE</small><b id="zoneLabel">100%</b></div><div><small>ÉLIMINATIONS</small><b id="kills">0</b></div></div>
