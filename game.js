@@ -176,7 +176,25 @@ render();toast('Monde isométrique prêt — recherche des données réelles');
 const homeNotice=document.getElementById('homeNotice');let noticeTimer;
 function showHomeNotice(message){homeNotice.textContent=message;homeNotice.classList.add('show');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>homeNotice.classList.remove('show'),2400)}
 document.getElementById('playBtn').addEventListener('click',()=>{document.body.classList.remove('home-active');document.body.classList.add('game-active');map.invalidateSize({pan:false});makeZone();requestAnimationFrame(()=>requestAnimationFrame(()=>{map.invalidateSize({pan:false});loadWorld();render()}));toast('Bienvenue dans JUJU WORLD')});
-document.getElementById('savesBtn').addEventListener('click',()=>showHomeNotice('Aucune sauvegarde pour le moment — bientôt disponible.'));
-document.getElementById('settingsBtn').addEventListener('click',()=>showHomeNotice('Paramètres : commandes WASD • zoom + / −'));
+function saveLocalGame(){
+ const snapshot={version:1,savedAt:new Date().toISOString(),player:{lat:player.lat,lng:player.lng},zoneCenter:{lat:zoneCenter.lat,lng:zoneCenter.lng},bots:bots.map(b=>({lat:b.pos.lat,lng:b.pos.lng})),loot:loot.map(o=>({lat:o.pos.lat,lng:o.pos.lng})),health,inventory,eliminations,zoneRadius,countdown};
+ try{localStorage.setItem('juju-world-save-v1',JSON.stringify(snapshot));showHomeNotice('Partie sauvegardée sur cet appareil.')}catch(e){showHomeNotice('Sauvegarde impossible : espace local indisponible.')}
+}
+function loadLocalGame(){
+ try{const raw=localStorage.getItem('juju-world-save-v1');if(!raw){showHomeNotice('Aucune sauvegarde locale trouvée.');return}const s=JSON.parse(raw);if(s.version!==1||!s.player||!Number.isFinite(s.player.lat)||!Number.isFinite(s.player.lng))throw Error('Invalid save');
+ interior=null;player=L.latLng(s.player.lat,s.player.lng);zoneCenter=L.latLng(s.zoneCenter?.lat??s.player.lat,s.zoneCenter?.lng??s.player.lng);bots=(s.bots||[]).map(p=>({pos:L.latLng(p.lat,p.lng)}));loot=(s.loot||[]).map(p=>({pos:L.latLng(p.lat,p.lng)}));health=Math.max(0,Math.min(100,s.health??100));inventory=Math.max(0,s.inventory||0);eliminations=s.eliminations||0;zoneRadius=s.zoneRadius||2500;countdown=s.countdown||120;map.setView(player,17);document.body.classList.remove('home-active');document.body.classList.add('game-active');document.getElementById('kills').textContent=eliminations;document.getElementById('players').textContent=bots.length+1;updateHealth();makeZone();worldLoaded=false;lastQuery='';loadWorld();loadElevation();gameEnded=false;render();showHomeNotice('Sauvegarde chargée.');
+ }catch(e){showHomeNotice('Sauvegarde illisible ou incompatible.')}
+}
+document.getElementById('savesBtn').addEventListener('click',loadLocalGame);
+const settingsModal=document.getElementById('settingsModal'),layoutSelect=document.getElementById('movementLayout');
+layoutSelect.value=movementLayout;
+document.getElementById('settingsBtn').addEventListener('click',()=>settingsModal.classList.add('open'));
+document.getElementById('closeSettings').addEventListener('click',()=>settingsModal.classList.remove('open'));
+document.getElementById('saveSettings').addEventListener('click',()=>{movementLayout=layoutSelect.value;localStorage.setItem('juju-movement-layout',movementLayout);settingsModal.classList.remove('open');showHomeNotice('Paramètres enregistrés.')});
+document.getElementById('saveGameBtn').addEventListener('click',saveLocalGame);
+document.getElementById('autoSaveToggle').checked=localStorage.getItem('juju-autosave')!=='false';
+document.getElementById('autoSaveToggle').addEventListener('change',e=>localStorage.setItem('juju-autosave',String(e.target.checked)));
+window.addEventListener('beforeunload',()=>{if(localStorage.getItem('juju-autosave')!=='false'&&document.body.classList.contains('game-active')){const snapshot={version:1,savedAt:new Date().toISOString(),player:{lat:player.lat,lng:player.lng},zoneCenter:{lat:zoneCenter.lat,lng:zoneCenter.lng},bots:bots.map(b=>({lat:b.pos.lat,lng:b.pos.lng})),loot:loot.map(o=>({lat:o.pos.lat,lng:o.pos.lng})),health,inventory,eliminations,zoneRadius,countdown};try{localStorage.setItem('juju-world-save-v1',JSON.stringify(snapshot))}catch{}}});
+
 document.getElementById('profileBtn').addEventListener('click',()=>showHomeNotice('Profil et progression — bientôt disponibles.'));
 document.getElementById('languageBtn').addEventListener('click',e=>{const b=e.currentTarget;b.textContent=b.textContent==='EN / FR'?'FR / EN':'EN / FR';showHomeNotice('Interface française / anglaise : traduction complète à venir.')});
