@@ -41,3 +41,8 @@ C'est un prototype 2D canvas avec projection isométrique, pas un moteur 3D: mod
 - Fenêtres stylisées générées à partir du nombre d'étages estimé.
 - Les relations multipolygones avec trous intérieurs ne sont pas encore évidées dans le rendu Canvas.
 - Les demandes Overpass sont sérialisées pour éviter plusieurs téléchargements concurrents pendant les déplacements.
+
+- Parties de bâtiments (`building:part`) prises en compte lorsqu'elles sont cartographiées.
+- Les cours intérieures des relations multipolygones OSM sont conservées comme trous dans les toitures et restent accessibles au déplacement.
+- Les voies ferrées sont dessinées séparément des routes.
+- Le culling utilise les boîtes géographiques des géométries afin de conserver les longues routes et grands bâtiments qui traversent l'écran sans sommet visible.
