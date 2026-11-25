@@ -57,3 +57,16 @@
 .settings-card>button:last-child{margin-top:14px;background:#28c9ad;border:0;border-radius:8px;padding:12px 16px;font-weight:800;cursor:pointer}
 .save-game-btn{border:1px solid #477168;background:#163b3a;color:#9cebd7;border-radius:8px;padding:9px 12px;font-weight:800;font-size:10px;cursor:pointer}
 @media(max-width:700px){.save-game-btn{padding:7px;font-size:9px}.settings-card{padding:20px}}
+
+/* Battle royale HUD */
+.inventory{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 7px!important}
+.inventory .slot{height:40px;border:1px solid #526b7e;border-radius:7px;background:#142636;color:#dcefff;font-size:17px;cursor:pointer}
+.inventory .slot.active{border-color:#4be4bd;box-shadow:0 0 9px #4be4bd66}
+.inventory .slot.filled{background:#1d3948;color:#ffd879}
+.inventory-help{font-size:9px;color:#8fa9bf;margin:0 0 15px}
+#miniMap{background:#102936}
+#miniMapCanvas{width:100%;height:100%;display:block;border-radius:50%}
+#miniMap .mini-ring,#miniMap .mini-dot{pointer-events:none}
+.route-distance{text-align:center;font-size:10px;color:#77d9e8;margin:-9px 0 8px}
+.clear-waypoint{display:block;margin:0 auto 12px;background:#20394a;border:1px solid #49647a;color:#cfe4f2;border-radius:6px;padding:6px 9px;font-size:10px;cursor:pointer}
+@media(max-width:760px){.inventory .slot{height:34px}.inventory-help{font-size:8px}}
