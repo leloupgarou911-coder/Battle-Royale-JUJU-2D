@@ -113,14 +113,36 @@
     readSlots().forEach(slot=>{
       const row=document.createElement('section');row.className='save-slot';
       const info=document.createElement('div');const title=document.createElement('strong');title.textContent=slot.name;
-      const detail=document.createElement('small');detail.textContent=slot.data?('Dernière sauvegarde : '+new Date(slot.savedAt||slot.data.savedAt).toLocaleString()+' · '+(slot.data.locationName||'Lieu personnalisé')):'Emplacement vide';
+      const detail=document.createElement('small');detail.textContent=slot.data?((language==='fr'?'Dernière sauvegarde : ':'Last saved: ')+new Date(slot.savedAt||slot.data.savedAt).toLocaleString()+' · '+(slot.data.locationName||'Lieu personnalisé')):(language==='fr'?'Emplacement vide':'Empty slot');
       info.append(title,detail);
       const actions=document.createElement('div');actions.className='save-slot-actions';
-      const save=document.createElement('button');save.textContent=slot.data?'Écraser':'Sauvegarder ici';save.className='primary';save.addEventListener('click',()=>{if(saveToSlot(slot.id)){renderLibrary();}});
-      const load=document.createElement('button');load.textContent='Charger';load.disabled=!validSnapshot(slot.data);load.addEventListener('click',()=>loadSlot(slot.id));
-      const remove=document.createElement('button');remove.textContent='Supprimer';remove.className='danger';remove.disabled=!slot.data;remove.addEventListener('click',()=>{if(!confirm('Supprimer '+slot.name+' ?'))return;const all=readSlots();const target=all.find(x=>x.id===slot.id);if(target){target.data=null;target.savedAt=null;writeSlots(all);renderLibrary();}});
+      const save=document.createElement('button');save.textContent=slot.data?(language==='fr'?'Écraser':'Overwrite'):(language==='fr'?'Sauvegarder ici':'Save here');save.className='primary';save.addEventListener('click',()=>{if(saveToSlot(slot.id)){renderLibrary();}});
+      const load=document.createElement('button');load.textContent=language==='fr'?'Charger':'Load';load.disabled=!validSnapshot(slot.data);load.addEventListener('click',()=>loadSlot(slot.id));
+      const remove=document.createElement('button');remove.textContent=language==='fr'?'Supprimer':'Delete';remove.className='danger';remove.disabled=!slot.data;remove.addEventListener('click',()=>{if(!confirm('Supprimer '+slot.name+' ?'))return;const all=readSlots();const target=all.find(x=>x.id===slot.id);if(target){target.data=null;target.savedAt=null;writeSlots(all);renderLibrary();}});
       actions.append(save,load,remove);row.append(info,actions);container.append(row);
     });
+  }
+  function exportBackup() {
+    const payload={format:'juju-world-backup',version:1,exportedAt:new Date().toISOString(),slots:readSlots()};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='juju-world-saves-backup.json';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);
+    notify('Fichier de sauvegarde exporté.');
+  }
+  async function importBackup(file) {
+    if(!file)return;
+    try {
+      const payload=JSON.parse(await file.text());
+      if(payload?.format!=='juju-world-backup'||!Array.isArray(payload.slots))throw Error('Invalid backup');
+      const imported=payload.slots.slice(0,MAX_SLOTS).map((slot,i)=>({
+        id:'slot-'+(i+1),name:'Emplacement '+(i+1),
+        savedAt:slot.savedAt||slot.data?.savedAt||null,
+        data:validSnapshot(slot.data)?slot.data:null
+      }));
+      while(imported.length<MAX_SLOTS)imported.push({id:'slot-'+(imported.length+1),name:'Emplacement '+(imported.length+1),savedAt:null,data:null});
+      if(!writeSlots(imported))throw Error('Storage unavailable');
+      activeSlotId='slot-1';renderLibrary();notify('Sauvegardes importées sur cet appareil.');
+    } catch(error) { console.error('Save import failed',error);notify('Fichier invalide ou stockage indisponible.'); }
   }
   function addSlot() {
     const slots=readSlots(),free=slots.find(s=>!s.data);
@@ -132,7 +154,7 @@
   function openProfile() {
     const p=getProfile(),hours=Math.floor(p.playSeconds/3600),minutes=Math.floor((p.playSeconds%3600)/60);
     $('#profileStats').innerHTML='';
-    const stats=[['Parties lancées',p.matchesStarted],['Éliminations',p.totalEliminations],['Sauvegardes manuelles',p.manualSaves],['Temps de jeu',hours+' h '+minutes+' min']];
+    const stats=language==='fr'?[['Parties lancées',p.matchesStarted],['Éliminations',p.totalEliminations],['Sauvegardes manuelles',p.manualSaves],['Temps de jeu',hours+' h '+minutes+' min']]:[['Matches started',p.matchesStarted],['Eliminations',p.totalEliminations],['Manual saves',p.manualSaves],['Play time',hours+' h '+minutes+' min']];
     stats.forEach(([label,value])=>{const card=document.createElement('div');card.className='profile-stat';const b=document.createElement('b');b.textContent=String(value);const span=document.createElement('span');span.textContent=label;card.append(b,span);$('#profileStats').append(card);});
     $('#profileModal').classList.add('open');
   }
@@ -157,11 +179,21 @@
     const statLabels=$$('.stats small');['players','zone','kills'].forEach((k,i)=>{if(statLabels[i])statLabels[i].textContent=t[k];});
     const panels=$$('.left-panel .panel-title');['equipment','inventory','objective'].forEach((k,i)=>{if(panels[i])panels[i].textContent=t[k];});
     set('.inventory-help','inventory-help');set('.left-panel>p','objective-text');
+    const weaponTitle=$('.weapon b'),weaponSub=$('.weapon small');if(weaponTitle)weaponTitle.textContent=language==='fr'?'Équipement de départ':'Starting equipment';if(weaponSub)weaponSub.textContent=language==='fr'?'Mode prototype':'Prototype mode';
+    const env=$('.right-panel p');const envFr=['Routes : déplacement accéléré','Forêts : déplacement ralenti','Pentes : vitesse adaptée au relief','Rivières : traversée par les ponts OSM','Tunnels : tracés différenciés','Altitude : Copernicus DEM (90 m)','Bâtiments : formes OSM, étages et hauteurs lorsqu’ils sont renseignés','Patios : cours intérieures des bâtiments multipolygones','Voies ferrées : tracés cartographiques détaillés','Arbres OSM : végétation ponctuelle dessinée','Trottoirs et chemins : tracés piétons visibles','Parkings : surfaces cartographiées','Passages piétons : marquages aux nœuds OSM','Eau et falaises : zones bloquées','Fonds carte, satellite et relief'];const envEn=['Roads: faster movement','Forests: slower movement','Slopes: speed adapts to terrain','Rivers: cross using OSM bridges','Tunnels: distinct map rendering','Elevation: Copernicus DEM (90 m)','Buildings: OSM footprints, floors and heights when available','Courtyards: building multipolygon interiors','Railways: detailed mapped tracks','OSM trees: individually rendered vegetation','Sidewalks and paths: visible pedestrian routes','Parking areas: mapped surfaces','Crossings: markings at OSM nodes','Water and cliffs: blocked areas','Map, satellite and terrain layers'];env.forEach((el,i)=>{if(i<15)el.textContent=(language==='fr'?envFr:envEn)[i];});
+    const hint=$('.hint');if(hint)hint.textContent=language==='fr'?'WASD • E récupérer • Q action':'WASD • E collect • Q action';
+    const cityInput=$('#cityInput');if(cityInput)cityInput.placeholder=language==='fr'?'Ex. Oran, Algérie':'e.g. Oran, Algeria';
+    const settingHelp=$('#settingsModal .settings-card p');if(settingHelp)settingHelp.textContent=language==='fr'?'Ramasser : E · Action : Q · Bâtiment : F · Zoom : + / −':'Collect: E · Action: Q · Building: F · Zoom: + / −';
+    const layoutOptions=$('#movementLayout option');if(layoutOptions.length===3){layoutOptions[0].textContent='WASD — QWERTY';layoutOptions[1].textContent='ZQSD — AZERTY';layoutOptions[2].textContent=language==='fr'?'Flèches directionnelles':'Arrow keys';}
     const rightPanels=$$('.right-panel .panel-title');['safe-zone','environment'].forEach((k,i)=>{if(rightPanels[i])rightPanels[i].textContent=t[k];});
     set('#zoneStatus','zone-status');set('#routeDistance','no-waypoint');set('#clearWaypoint','clear-waypoint');set('.health>span','energy');set('#actionBtn','action');set('#saveGameBtn','save');set('#locate','city');
     set('#cityModal h2','choose-city');set('#cityModal p','city-help');set('#searchCity','search');set('#pickMapLocation','pick-map');
     set('#settingsModal h2','settings-title');set('label[for="movementLayout"]','keyboard');set('label:has(#autoSaveToggle)','autosave');set('#saveSettings','save-settings');
     set('#saveLibraryTitle','save-title');set('#saveLibraryHint','save-hint');set('#profileTitle','profile-title');
+    const exportBtn=$('#exportSaves'),importBtn=$('#importSaves'),newSlot=$('#newSaveSlot');
+    if(exportBtn)exportBtn.textContent=language==='fr'?'Exporter mes sauvegardes':'Export my saves';
+    if(importBtn)importBtn.textContent=language==='fr'?'Importer une sauvegarde':'Import saves';
+    if(newSlot)newSlot.textContent=language==='fr'?'Nouvel emplacement':'New slot';
     const saveLabel=$('#saveGameBtn');if(saveLabel)saveLabel.textContent=t.save;
     const languageBtn=$('#languageBtn');if(languageBtn)languageBtn.textContent=language==='fr'?'EN':'FR';
   }
@@ -175,6 +207,9 @@
   $('#closeSaveLibrary').addEventListener('click',()=>$('#saveLibraryModal').classList.remove('open'));
   $('#closeProfile').addEventListener('click',()=>$('#profileModal').classList.remove('open'));
   $('#newSaveSlot').addEventListener('click',addSlot);
+  $('#exportSaves').addEventListener('click',exportBackup);
+  $('#importSaves').addEventListener('click',()=>$('#importSavesFile').click());
+  $('#importSavesFile').addEventListener('change',e=>{importBackup(e.target.files?.[0]);e.target.value='';});
   ['saveLibraryModal','profileModal'].forEach(id=>$('#'+id).addEventListener('click',e=>{if(e.target.id===id)e.currentTarget.classList.remove('open');}));
 
   // The game itself calls startCity; count sessions without changing its core behavior.
