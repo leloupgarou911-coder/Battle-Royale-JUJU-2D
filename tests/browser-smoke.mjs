@@ -50,9 +50,28 @@ try {
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
-  await page.waitForTimeout(250);
+  await page.waitForFunction(() => document.querySelector('#terrainReadout')?.textContent.includes('ALT. 25 m'), null, { timeout: 15000 });
+
+  // Regression: the mobile D-pad must follow the selected ZQSD layout.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('#settingsBtn').click();
+  await page.locator('#movementLayout').selectOption('zqsd');
+  await page.locator('#saveSettings').click();
+  await page.locator('#playBtn').click();
+  await page.locator('#cityInput').fill('Oran');
+  await page.locator('#searchCity').click();
+  await page.locator('.city-result').first().click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const up = page.locator('.mobile-pad [data-dir=up]');
+  await up.waitFor({ state: 'visible' });
+  await up.hover();
+  await page.mouse.down();
+  assert.equal(await up.getAttribute('data-active-key'), 'z');
+  await page.mouse.up();
+  assert.equal(await up.getAttribute('data-active-key'), null);
+
   assert.deepEqual(pageErrors, [], `Unexpected browser errors: ${pageErrors.join('; ')}`);
-  console.log('PASS: city typing, city selection, visible map tiles, loot save/restore, and browser console');
+  console.log('PASS: city typing/search, map tiles, elevation, loot save/restore, mobile ZQSD, and browser console');
 } finally {
   await browser.close();
 }
