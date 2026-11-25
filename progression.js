@@ -206,6 +206,7 @@
   cloneButton('savesBtn',openLibrary);
   cloneButton('profileBtn',openProfile);
   cloneButton('saveGameBtn',()=>saveToSlot(activeSlotId));
+  cloneButton('saveSettings',()=>{movementLayout=$('#movementLayout').value;const saved=writeLocalStorage('juju-movement-layout',movementLayout);settingsModal.classList.remove('open');notify(saved?(language==='fr'?'Paramètres enregistrés.':'Settings saved.'):(language==='fr'?'Stockage indisponible : paramètres non enregistrés.':'Storage unavailable: settings were not saved.'));});
   $('#manageSavesBtn').addEventListener('click',openLibrary);
   cloneButton('languageBtn',()=>{language=language==='fr'?'en':'fr';safeWrite(LANGUAGE_KEY,language);applyLanguage();notify(language==='fr'?'Interface en français.':'Interface in English.');});
   $('#closeSaveLibrary').addEventListener('click',()=>$('#saveLibraryModal').classList.remove('open'));
@@ -216,6 +217,10 @@
   $('#importSavesFile').addEventListener('change',e=>{importBackup(e.target.files?.[0]);e.target.value='';});
   ['saveLibraryModal','profileModal'].forEach(id=>$('#'+id).addEventListener('click',e=>{if(e.target.id===id)e.currentTarget.classList.remove('open');}));
 
+  const originalCycleMapStyle=cycleMapStyle;
+  cycleMapStyle=function(){originalCycleMapStyle();const b=$('#mapStyle');if(b&&language==='en')b.textContent=mapStyle==='street'?'MAP':mapStyle==='satellite'?'SATELLITE':'TERRAIN';};
+  const originalSetWorldLoadState=setWorldLoadState;
+  setWorldLoadState=function(message,loading=false,failed=false){if(language==='en'){const mapText={'Zoom insuffisant pour charger les données.':'Zoom in to load map data.','Connexion aux données géographiques…':'Connecting to geographic data…','Récupération des routes et bâtiments…':'Loading roads and buildings…','Carte prête':'Map ready','Carte géographique chargée.':'Geographic map loaded.','Chargement des éléments':'Loading map features','Données géographiques indisponibles.':'Geographic data unavailable.'};for(const [fr,en] of Object.entries(mapText))message=message.replace(fr,en);}return originalSetWorldLoadState(message,loading,failed);};
   // The game itself calls startCity; count sessions without changing its core behavior.
   const originalStartCity=startCity;
   startCity=function(lat,lon,name){originalStartCity(lat,lon,name);window.jujuLocationName=name||'Lieu personnalisé';const p=getProfile();p.matchesStarted++;setProfile(p);sessionStartedAt=Date.now();lastEliminations=eliminations;};
