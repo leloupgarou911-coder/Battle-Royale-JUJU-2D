@@ -81,6 +81,10 @@ try {
   await page.locator('body.game-active').waitFor({ state: 'attached' });
   assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('cyber-map')),true);
   assert.equal(await page.locator('#mapStyle').textContent(),'NEON');
+  assert.equal(await page.locator('#map .leaflet-control-zoom').count(),0,'Zoom controls must be hidden during a match');
+  assert.equal(await page.locator('#players').textContent(),'1','A match must start with no bots already spawned');
+  assert.equal(await page.locator('#map').evaluate(el=>el.classList.contains('leaflet-container')),true);
+
 
   // Regression: Leaflet raster tiles must not be hidden by a later CSS rule.
   const tileDisplay = await page.locator('#map .leaflet-tile-pane').evaluate(el => getComputedStyle(el).display);
