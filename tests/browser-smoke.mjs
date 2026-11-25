@@ -9,6 +9,7 @@ let citySearchMode = 'normal';
 const overpassCalls = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 
+await page.route('https://unpkg.com/globe.gl', route => route.fulfill({status:200,contentType:'application/javascript',body:`window.Globe=function(){return function(host){const api={globeImageUrl(){return api},backgroundColor(){return api},showAtmosphere(){return api},atmosphereColor(){return api},atmosphereAltitude(){return api},width(){return api},height(){return api},onGlobeClick(fn){window.__earthClick=fn;return api},pointOfView(){return api},pointsData(){return api},pointAltitude(){return api},pointRadius(){return api},pointColor(){return api},controls(){return {autoRotate:false,enableZoom:true}}};return api}}`}));
 await page.route('https://photon.komoot.io/**', route => citySearchMode === 'slow' ? route.fulfill({status:503,contentType:'application/json',body:'{}'}) : route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({features:[{geometry:{coordinates:[-0.6308,35.6971]},properties:{name:'Oran',country:'Algeria'}}]})}));
 await page.route('https://nominatim.openstreetmap.org/**', async route => {
   if (citySearchMode === 'slow') {
@@ -65,10 +66,21 @@ try {
   await page.locator('#cityInput').pressSequentially('Oran');
   assert.equal(await page.locator('#cityInput').inputValue(), 'Oran');
 
+  // The direct-location flow must open a globe, accept a geographic click and confirm coordinates.
+  await page.locator('#pickMapLocation').click();
+  await page.locator('#earthPicker.open').waitFor({state:'visible'});
+  await page.evaluate(()=>window.__earthClick({lat:36.7525,lng:3.042}));
+  assert.equal(await page.locator('#confirmEarthLocation').isEnabled(),true);
+  assert.match(await page.locator('#earthCoordinates').textContent(),/36.7525.*3.0420/);
+  await page.locator('#closeEarthPicker').click();
+  await page.locator('#playBtn').click();
+  await page.locator('#cityModal.open').waitFor({state:'visible'});
   await page.locator('#searchCity').click();
   await page.locator('.city-result').first().waitFor({ state: 'visible' });
   await page.locator('.city-result').first().click();
   await page.locator('body.game-active').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('cyber-map')),true);
+  assert.equal(await page.locator('#mapStyle').textContent(),'NEON');
 
   // Regression: Leaflet raster tiles must not be hidden by a later CSS rule.
   const tileDisplay = await page.locator('#map .leaflet-tile-pane').evaluate(el => getComputedStyle(el).display);
