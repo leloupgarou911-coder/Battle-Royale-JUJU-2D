@@ -80,7 +80,7 @@
   function loadSlot(id) {
     const slot=readSlots().find(s=>s.id===id);
     if(!slot || !validSnapshot(slot.data)){notify('Cet emplacement ne contient aucune sauvegarde valide.');return;}
-    if(document.body.classList.contains('game-active'))saveToSlot(activeSlotId,true);
+    if(document.body.classList.contains('game-active')&&activeSlotId!==id)saveToSlot(activeSlotId,true);
     const s=slot.data;
     try {
       player=L.latLng(s.player.lat,s.player.lng);
