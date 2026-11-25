@@ -39,3 +39,6 @@
 
 /* JUJU WORLD map readability pass */
 #map{background:#dce7e8!important}#map .leaflet-tile{filter:saturate(1.08) contrast(1.035) brightness(1.025)}#map .leaflet-control-zoom{border:1px solid #526d7d!important;box-shadow:0 5px 18px #07131c55!important}#map .leaflet-control-zoom a{background:#102532!important;color:#e8f7f8!important;border-color:#345365!important}#map .leaflet-control-attribution{background:#f5f8f0cc!important;color:#30434c!important}#map .leaflet-control-attribution a{color:#176d79!important}.game-active #map{visibility:visible!important;opacity:1!important}.game-active #isoWorld{visibility:visible!important;opacity:1!important}
+
+/* Terrain data HUD */
+.terrain-readout{font-size:9px;letter-spacing:.6px;color:#83dcca;white-space:nowrap;min-width:145px;text-align:right;text-shadow:0 1px 4px #0008}@media(max-width:700px){.terrain-readout{display:none}}
