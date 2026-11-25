@@ -82,13 +82,10 @@ try {
   assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('cyber-map')),true);
   assert.equal(await page.locator('#mapStyle').textContent(),'NEON');
   assert.equal(await page.locator('#map .leaflet-control-zoom').count(),0,'Zoom controls must be hidden during a match');
-  assert.equal(await page.evaluate(()=>window.L&&document.querySelector('#map')&&document.querySelector('#map')._leaflet_pos!==undefined?true:true),true);
-  assert.equal(await page.evaluate(()=>document.querySelector('#map')._leaflet_pos?true:true),true);
-  assert.equal(await page.evaluate(()=>document.querySelector('#map').classList.contains('leaflet-container')),true);
-  assert.equal(await page.evaluate(()=>window.__jujuGameZoom||19),19);
+  assert.equal(await page.evaluate(()=>window.__jujuMap.getZoom()),19,'Gameplay must use the closer fixed camera distance');
   await page.keyboard.press('-');
   await page.keyboard.press('+');
-  assert.equal(await page.evaluate(()=>document.querySelector('#map')._leaflet_pos?19:19),19,'Gameplay zoom shortcuts must not change the locked view');
+  assert.equal(await page.evaluate(()=>window.__jujuMap.getZoom()),19,'Gameplay zoom shortcuts must not change the locked view');
 
   assert.equal(await page.locator('#players').textContent(),'1','A match must start with no bots already spawned');
   assert.equal(await page.locator('#map').evaluate(el=>el.classList.contains('leaflet-container')),true);
