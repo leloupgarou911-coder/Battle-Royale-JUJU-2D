@@ -117,3 +117,5 @@
 }
 
 #saveLibraryFeedback{min-height:18px;margin:8px 0;color:#9cebd7;font-size:12px;font-weight:700}
+
+.prototype-disclosure{max-width:610px;margin:14px auto 0!important;padding:9px 12px;border:1px solid #345365;border-radius:8px;background:#0c1b28a8;color:#a9c4d5;font-size:11px!important;line-height:1.55!important;letter-spacing:.15px;text-align:center}.leaflet-fallback-notice{padding:10px;color:#ffd6a6}
