@@ -115,6 +115,7 @@ try {
     slots[0].data.loot[0].type = 'unknown-item';
     slots[0].data.health = 0;
     localStorage.setItem('juju-world-saves-v2', JSON.stringify(slots));
+    localStorage.setItem('juju-autosave', 'false'); // prevent the intentional pagehide backup from replacing the corrupted fixture
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#savesBtn').click();
