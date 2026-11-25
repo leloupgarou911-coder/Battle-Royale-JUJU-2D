@@ -65,11 +65,12 @@
     if(index<0) return false;
     const data=snapshotGame();
     slots[index]={...slots[index],savedAt:data.savedAt,data};
-    if(!writeSlots(slots)){notify('Sauvegarde impossible : stockage local saturé ou indisponible.');return false;}
+    if(!writeSlots(slots)){const msg='Sauvegarde impossible : stockage local saturé ou indisponible.';if($('#saveLibraryModal')?.classList.contains('open'))$('#saveLibraryFeedback').textContent=msg;else notify(msg);return false;}
     activeSlotId=id;
     if(!automatic){
       const p=getProfile();p.manualSaves++;setProfile(p);
-      notify('Partie sauvegardée dans '+slots[index].name+'.');
+      const msg=language==='fr'?'Partie sauvegardée dans '+slots[index].name+'.':'Game saved to '+slots[index].name+'.';
+      if($('#saveLibraryModal')?.classList.contains('open'))$('#saveLibraryFeedback').textContent=msg;else notify(msg);
     }
     lastAutoSaveAt=Date.now();
     return true;
@@ -111,6 +112,7 @@
   function openLibrary() { renderLibrary();$('#saveLibraryModal').classList.add('open'); }
   function renderLibrary() {
     const container=$('#saveSlots');if(!container)return;container.replaceChildren();
+    const feedback=$('#saveLibraryFeedback');if(feedback)feedback.textContent='';
     readSlots().forEach(slot=>{
       const row=document.createElement('section');row.className='save-slot';
       const info=document.createElement('div');const title=document.createElement('strong');title.textContent=slot.name;
