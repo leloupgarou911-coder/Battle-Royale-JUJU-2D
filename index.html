@@ -5,12 +5,12 @@
 <title>JUJU WORLD — Explore Beyond the Map</title>
 <meta name="description" content="Prototype Battle Royale 2D sur une carte réelle du monde.">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link id="leafletCss" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body class="home-active">
 <section id="homeScreen" class="home-screen" aria-label="Accueil JUJU WORLD">
 <header class="home-header"><a class="home-brand" href="#" aria-label="JUJU WORLD"><span class="home-logo">J</span><span><b>JUJU WORLD</b><small>EXPLORE BEYOND THE MAP</small></span></a><div class="home-actions"><span class="alpha-tag">PRE-ALPHA</span><button id="languageBtn" class="language-btn">EN / FR</button></div></header>
-<main class="home-main"><section class="home-copy"><div class="eyebrow"><i></i> THE WORLD IS WAITING</div><h1>YOUR WORLD.<br><em>YOUR ADVENTURE.</em></h1><p>Explore real places, discover new cities and create your own journey<br class="desktop-break"> across a living world map.</p><div class="home-buttons"><button id="playBtn" class="play-btn"><span>▶</span> PLAY <small>START EXPLORING</small></button><button id="savesBtn" class="secondary-btn">▤ &nbsp; MY SAVES</button></div><nav class="home-links"><button id="settingsBtn">⚙ PARAMÈTRES</button><button id="profileBtn">◉ PROFILE & PROGRESSION</button></nav></section>
+<main class="home-main"><section class="home-copy"><div class="eyebrow"><i></i> THE WORLD IS WAITING</div><h1>YOUR WORLD.<br><em>YOUR ADVENTURE.</em></h1><p>Explore real places, discover new cities and create your own journey<br class="desktop-break"> across a living world map.</p><p class="prototype-disclosure" id="prototypeDisclosure">Prototype solo · Bots simulés · Sauvegardes locales · Monde 2D isométrique · Aucun multijoueur en ligne</p><div class="home-buttons"><button id="playBtn" class="play-btn"><span>▶</span> PLAY <small>START EXPLORING</small></button><button id="savesBtn" class="secondary-btn">▤ &nbsp; MY SAVES</button></div><nav class="home-links"><button id="settingsBtn">⚙ PARAMÈTRES</button><button id="profileBtn">◉ PROFILE & PROGRESSION</button></nav></section>
 <aside class="world-card"><div class="card-top"><span><i></i> WORLD EXPLORER</span><b>01</b></div><div class="globe-stage"><div class="globe"><span class="globe-longitude"></span><span class="globe-latitude"></span><span class="globe-orbit"></span></div><span class="coordinates">31°37′ N &nbsp; 08°00′ E</span></div><div class="world-caption"><small>ONE PLANET</small><b>ENDLESS PLACES</b></div><div class="card-bottom"><span>GLOBAL MAP</span><span>OPEN WORLD EXPERIENCE</span></div></aside></main>
 <footer class="home-footer"><span>JUJU WORLD &nbsp; • &nbsp; ALPHA 0.3</span><span>BUILT FOR EXPLORATION</span></footer><div id="homeNotice" class="home-notice" role="status"></div></section>
 
@@ -28,7 +28,21 @@
 <div id="profileModal" class="settings-modal" aria-modal="true" role="dialog" aria-labelledby="profileTitle"><div class="settings-card"><button id="closeProfile" class="close" aria-label="Fermer">×</button><h2 id="profileTitle">Profil & progression</h2><div id="profileStats" class="profile-stats"></div></div></div>
 <div id="settingsModal" class="settings-modal"><div class="settings-card"><button id="closeSettings" class="close">×</button><h2>Paramètres</h2><label for="movementLayout">Disposition du clavier</label><select id="movementLayout"><option value="wasd">WASD — QWERTY</option><option value="zqsd">ZQSD — AZERTY</option><option value="arrows">Flèches directionnelles</option></select><p>Ramasser : E · Action : Q · Bâtiment : F · Zoom : + / −</p><label><input id="autoSaveToggle" type="checkbox" checked> Sauvegarde automatique</label><button id="saveSettings">Enregistrer les paramètres</button></div></div><div class="mobile-pad"><button data-dir="up">▲</button><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div>
 <div class="game-over" id="gameOver"><div class="game-over-card"><h2>PARTIE TERMINÉE</h2><p id="gameOverText"></p><button id="restart">Rejouer</button></div></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="game.js"></script>
-<script src="progression.js"></script>
+<script>
+(async function bootJuju(){
+  const sources=["https://unpkg.com/leaflet@1.9.4/dist/leaflet.js","https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js","https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"];
+  const css=document.getElementById("leafletCss");
+  css.addEventListener("error",()=>{const fallback=document.createElement("link");fallback.rel="stylesheet";fallback.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";document.head.append(fallback);},{once:true});
+  function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=src;s.onload=()=>resolve();s.onerror=()=>{s.remove();reject(new Error("Leaflet CDN unavailable: "+src));};document.head.append(s);});}
+  let loaded=false;
+  for(const src of sources){try{await loadScript(src);if(window.L&&typeof window.L.map==="function"){loaded=true;break;}}catch(error){console.warn(error.message);}}
+  if(!loaded){
+    const message="Le moteur cartographique Leaflet n’a pas pu être chargé. Vérifie ta connexion ou réessaie plus tard. / Leaflet could not load. Check your connection and try again.";
+    const notice=document.getElementById("homeNotice");notice.textContent=message;notice.classList.add("show");
+    ["playBtn","savesBtn","settingsBtn","profileBtn"].forEach(id=>document.getElementById(id)?.addEventListener("click",()=>{notice.textContent=message;notice.classList.add("show");}));
+    return;
+  }
+  const game=document.createElement("script");game.src="game.js";game.onload=()=>{const progression=document.createElement("script");progression.src="progression.js";document.body.append(progression);};document.body.append(game);
+})();
+</script>
 </body></html>
