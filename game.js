@@ -16,7 +16,8 @@ const scale=3.1; // screen pixels per local metre
 function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*d;canvas.height=innerHeight*d;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(d,0,0,d,0,0);map.invalidateSize({pan:false});render()}
 window.addEventListener('resize',resize);
 function local(p,origin=player){const lat=(p.lat-origin.lat)*111320,lng=(p.lng-origin.lng)*111320*Math.cos(origin.lat*Math.PI/180);return{lng:lng, north:lat}}
-function project(p){const q=map.latLngToContainerPoint(p);return{x:q.x,y:q.y}}\nfunction geometryVisible(coords,bounds){if(!coords||!coords.length)return false;const points=coords.map(v=>L.latLng(v[0],v[1]));return bounds.intersects(L.latLngBounds(points))}
+function project(p){const q=map.latLngToContainerPoint(p);return{x:q.x,y:q.y}}
+function geometryVisible(coords,bounds){if(!coords||!coords.length)return false;const points=coords.map(v=>L.latLng(v[0],v[1]));return bounds.intersects(L.latLngBounds(points))}
 function unprojectScreen(dx,dy){const z=scale*Math.pow(2,map.getZoom()-17),a=dx/(z*.72),b=dy/(z*.38);const east=(a+b)/2,north=(b-a)/2;return L.latLng(player.lat+north/111320,player.lng+east/(111320*Math.cos(player.lat*Math.PI/180)))}
 function distance(a,b){const q=local(b,a);return Math.hypot(q.lng,q.north)}
 function offset(p,east,north){return L.latLng(p.lat+north/111320,p.lng+east/(111320*Math.cos(p.lat*Math.PI/180)))}
