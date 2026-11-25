@@ -1,5 +1,5 @@
 /* JUJU WORLD — geographic 2D world prototype using OpenStreetMap and elevation data. */
-const map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([35.6971,-0.6308],17);
+const map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([35.6971,-0.6308],17);window.__jujuMap=map;
 const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});
 const voyagerLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'});
 const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});
